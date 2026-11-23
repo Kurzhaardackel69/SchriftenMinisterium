@@ -4,16 +4,53 @@ const fs = require('node:fs/promises');
 const { pathToFileURL } = require('node:url');
 const { spawn } = require('node:child_process');
 const { checkForUpdate, downloadUpdate, verifyInstaller, cleanUpdateCache } = require('./updates.cjs');
+const { loadWithRetry } = require('./startup.cjs');
 
 app.setName('SchriftenMinisterium');
 if (process.env.SCHRIFTENMINISTERIUM_DESKTOP_PROFILE) app.setPath('userData', path.resolve(process.env.SCHRIFTENMINISTERIUM_DESKTOP_PROFILE));
 let window, server, baseUrl, dataRoot, shuttingDown = false;
 let updating = false;
+let rendererReady = false, overviewRequested = false, logFile;
+let logQueue = Promise.resolve();
+function record(event, details = {}) {
+  if (!logFile) return;
+  const line = JSON.stringify({ time:new Date().toISOString(), event, ...details }) + '\n';
+  logQueue = logQueue.then(() => fs.appendFile(logFile, line)).catch(() => {});
+}
+async function startupFailure(error) {
+  if (shuttingDown) return;
+  record('startup-fatal', { message:error.message }); await logQueue;
+  await dialog.showMessageBox({ type:'error', message:'SchriftenMinisterium konnte nicht starten.', detail:`${error.message}\n\nStartprotokoll: ${logFile || 'nicht verfügbar'}\nDeine Dokumentprojekte wurden nicht verändert.`, buttons:['Beenden'] }); app.quit();
+}
 const hasLock = app.requestSingleInstanceLock();
 if (!hasLock) app.quit();
 else {
   app.on('second-instance', () => { if (window) { if (window.isMinimized()) window.restore(); window.show(); window.focus(); } });
-  app.whenReady().then(start).catch(error => { dialog.showErrorBox('SchriftenMinisterium konnte nicht starten', error.message); app.quit(); });
+  app.whenReady().then(start).catch(startupFailure);
+}
+
+async function openOverview() {
+  if (!rendererReady) { overviewRequested = true; return; }
+  await window.webContents.executeJavaScript('window.openProjectOverview()');
+}
+async function loadInterface() {
+  rendererReady = false;
+  const ready = () => !window.isDestroyed() && window.webContents.getURL().startsWith(baseUrl + '/') && window.webContents.executeJavaScript('window.schriftenministeriumReady === true');
+  while (!window.isDestroyed()) {
+    try {
+      await loadWithRetry({ load:() => window.loadURL(baseUrl + '/#/projects'), ready, stop:() => { if (!window.isDestroyed()) window.webContents.stop(); }, report:record });
+      rendererReady = true; window.show();
+      if (overviewRequested) { overviewRequested = false; await openOverview(); }
+      return;
+    } catch (error) {
+      record('load-retries-exhausted', { message:error.message }); await logQueue;
+      if (window.isDestroyed() || shuttingDown) return;
+      window.show();
+      const answer = await dialog.showMessageBox(window, { type:'error', message:'Die lokale Oberfläche konnte noch nicht geladen werden.', detail:`${error.message}\n\nDeine Projekte bleiben erhalten. Du kannst den Start wiederholen.\nStartprotokoll: ${logFile}`, buttons:['Erneut versuchen','Startprotokoll öffnen','Beenden'], defaultId:0, cancelId:2 });
+      if (answer.response === 2) { app.quit(); return; }
+      if (answer.response === 1) await shell.openPath(logFile);
+    }
+  }
 }
 
 async function importData() {
@@ -82,6 +119,12 @@ async function updateApplication() {
   }
 }
 async function start() {
+  const logDirectory = path.join(app.getPath('userData'), 'logs'); await fs.mkdir(logDirectory, {recursive:true});
+  logFile = path.join(logDirectory, 'startup.log');
+  await fs.rename(logFile, path.join(logDirectory, 'startup.previous.log')).catch(() => {});
+  await fs.writeFile(logFile, '');
+  record('start', { version:app.getVersion(), packaged:app.isPackaged });
+  app.on('child-process-gone', (_event, details) => record('child-process-gone', { type:details.type, reason:details.reason, exitCode:details.exitCode }));
   dataRoot = path.resolve(process.env.SCHRIFTENMINISTERIUM_DATA || path.join(app.getPath('userData'),'projects'));
   // Own update cache only; project data and application settings are never cleanup targets.
   await cleanUpdateCache(path.join(app.getPath('userData'), 'updates')).catch(() => {});
@@ -92,7 +135,15 @@ async function start() {
   server = await createApp({dataRoot});
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(Number(process.env.SCHRIFTENMINISTERIUM_DESKTOP_PORT || 3211),'127.0.0.1',resolve);});
   baseUrl = `http://127.0.0.1:${server.address().port}`;
+  record('backend-listening', { baseUrl });
+  const health = await fetch(baseUrl + '/api/health', {headers:{'X-Schriftenministerium-Request':'1'}, signal:AbortSignal.timeout(10000)});
+  if (!health.ok) throw new Error('Der lokale Dokumentdienst ist noch nicht bereit.');
+  await health.arrayBuffer(); record('backend-ready');
+  // The renderer only talks to this app's loopback service; system proxy rules must not reroute it.
+  await session.defaultSession.setProxy({ mode:'direct' });
   window = new BrowserWindow({width:1440,height:930,minWidth:820,minHeight:580,title:'SchriftenMinisterium',backgroundColor:'#142722',icon:path.join(__dirname,'assets/icon.ico'),show:false,webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,spellcheck:false}});
+  window.webContents.on('did-fail-load', (_event, code, description, _url, mainFrame) => { if (mainFrame) record('did-fail-load', {code, description}); });
+  window.webContents.on('render-process-gone', (_event, details) => record('renderer-gone', {reason:details.reason, exitCode:details.exitCode}));
   session.defaultSession.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));
   window.webContents.setWindowOpenHandler(({url})=>{ if (/^https:\/\/github\.com\//.test(url)) shell.openExternal(url); return {action:'deny'}; });
   window.webContents.on('will-navigate',(event,url)=>{if (!url.startsWith(baseUrl+'/')) event.preventDefault();});
@@ -100,14 +151,15 @@ async function start() {
     const answer=dialog.showMessageBoxSync(window,{type:'question',buttons:['Weiter bearbeiten','Fenster schließen'],defaultId:0,cancelId:0,message:'Es gibt noch nicht gespeicherte Änderungen.'}); if(answer===1)event.preventDefault();
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate([
-    {label:'Datei',submenu:[{label:'Projektübersicht',accelerator:'CmdOrCtrl+Shift+P',click:()=>window.loadURL(baseUrl+'/#/projects')},{label:'Vorhandene Projekte übernehmen …',click:guarded(importData)},{label:'Datenordner öffnen',click:()=>shell.openPath(dataRoot)},{type:'separator'},{role:'quit',label:'Beenden'}]},
+    {label:'Datei',submenu:[{label:'Projektübersicht',accelerator:'CmdOrCtrl+Shift+P',click:guarded(openOverview)},{label:'Vorhandene Projekte übernehmen …',click:guarded(importData)},{label:'Datenordner öffnen',click:()=>shell.openPath(dataRoot)},{type:'separator'},{role:'quit',label:'Beenden'}]},
     {label:'Bearbeiten',submenu:[{role:'undo',label:'Rückgängig'},{role:'redo',label:'Wiederholen'},{type:'separator'},{role:'cut',label:'Ausschneiden'},{role:'copy',label:'Kopieren'},{role:'paste',label:'Einfügen'},{role:'selectAll',label:'Alles auswählen'}]},
     {label:'Ansicht',submenu:[{role:'resetZoom',label:'Originalgröße'},{role:'zoomIn',label:'Vergrößern'},{role:'zoomOut',label:'Verkleinern'},{type:'separator'},{role:'togglefullscreen',label:'Vollbild'}]},
     {label:'Werkzeuge',submenu:[{label:'TeX-Programmordner auswählen …',click:guarded(chooseTools)}]},
-    {label:'Hilfe',submenu:[{label:'Nach Updates suchen …',click:guarded(updateApplication)},{type:'separator'},{label:'Über SchriftenMinisterium',click:()=>dialog.showMessageBox(window,{type:'info',message:`SchriftenMinisterium ${app.getVersion()}`,detail:'Dein Arbeitsplatz für schriftliche Dokumentationi\n\nLokale Desktop-Anwendung.\nProjekte: '+dataRoot})}]}
+    {label:'Hilfe',submenu:[{label:'Nach Updates suchen …',click:guarded(updateApplication)},{label:'Startprotokoll öffnen',click:()=>shell.openPath(logFile)},{type:'separator'},{label:'Über SchriftenMinisterium',click:()=>dialog.showMessageBox(window,{type:'info',message:`SchriftenMinisterium ${app.getVersion()}`,detail:'Dein Arbeitsplatz für schriftliche Dokumentationi\n\nLokale Desktop-Anwendung.\nProjekte: '+dataRoot})}]}
   ]));
   window.once('ready-to-show',()=>window.show());
-  await window.loadURL(baseUrl+'/#/projects');
+  await loadInterface();
+  if (!rendererReady) return;
   if (process.env.SCHRIFTENMINISTERIUM_SMOKE_OUTPUT) {
     await new Promise(resolve=>setTimeout(resolve,1800));
     const health=await(await fetch(baseUrl+'/api/health',{headers:{'X-Schriftenministerium-Request':'1'}})).json();

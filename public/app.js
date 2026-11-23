@@ -578,6 +578,8 @@ $('editor-layout').addEventListener('change', () => {
 });
 
 const library = new ProjectLibrary({ api, el, icon, toast, showModal, field, modalButton, cancelButton, showHelp, showSharing, newProject, importProject, openProject: enterProject });
+window.openProjectOverview = async () => { if (state.compiling) throw new Error('Bitte warte, bis die Kompilierung abgeschlossen ist.'); await showProjects(); };
+window.schriftenministeriumReady = true;
 window.prepareDesktopUpdate = async () => {
   if (state.compiling || navigating) return false;
   clearTimeout(autoTimer); await flush();

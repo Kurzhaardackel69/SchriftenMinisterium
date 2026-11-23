@@ -6,7 +6,7 @@ Eine lokale Anwendung zum Organisieren, Schreiben und Erstellen von PDF-Dokument
 
 ## Windows installieren
 
-Die fertige Desktop-Ausgabe liegt unter **release/SchriftenMinisterium-Setup-0.3.0-x64.exe** und als Download in den [GitHub Releases](https://github.com/Kurzhaardackel69/SchriftenMinisterium/releases). Der Installer richtet die Anwendung für das aktuelle Windows-Konto ein und bietet Desktop- und Startmenü-Verknüpfungen an. Die Anwendung hat ein eigenes Fenster; ein Browser oder ein separates Serverfenster ist für die Benutzung nicht erforderlich. Die Programmdatei ist derzeit nicht mit einem kommerziellen Code-Signing-Zertifikat signiert.
+Die fertige Desktop-Ausgabe liegt unter **release/SchriftenMinisterium-Setup-0.3.1-x64.exe** und als Download in den [GitHub Releases](https://github.com/Kurzhaardackel69/SchriftenMinisterium/releases). Der Installer richtet die Anwendung für das aktuelle Windows-Konto ein und bietet Desktop- und Startmenü-Verknüpfungen an. Die Anwendung hat ein eigenes Fenster; ein Browser oder ein separates Serverfenster ist für die Benutzung nicht erforderlich. Die Programmdatei ist derzeit nicht mit einem kommerziellen Code-Signing-Zertifikat signiert.
 
 Node.js und der Standard-PDF-Compiler sind im Desktop-Paket enthalten. Git bleibt optional und wird für die GitHub-Funktionen separat benötigt. Der Datenordner liegt bei der installierten Anwendung unter **%APPDATA%/SchriftenMinisterium/projects**; er bleibt bei der Deinstallation erhalten.
 
@@ -22,9 +22,17 @@ Ab Version **0.3.0** steht im nativen Menü **Hilfe → Nach Updates suchen** zu
 
 Das Update ersetzt die vorhandenen Programmdateien am bisherigen Installationsort. Es ist keine vorherige Deinstallation und keine erneute Projekteinrichtung nötig. Die Anwendungskennung bleibt unverändert und der getrennte Datenordner im Benutzerprofil bleibt erhalten. Nach dem Update startet die Anwendung erneut. Geladene Update-Dateien werden beim nächsten Programmstart aus dem eigenen Update-Cache entfernt; Dokumentprojekte gehören nie zu diesem Cache.
 
-**Einmaliger Übergang von 0.2.0:** Diese Version besitzt noch kein Update-Menü. Führe den aktuellen Installer einmal über die bestehende Installation aus. Danach verwendest du das Update-Menü. Falls du noch keine Ausgabe installiert hast, installierst du direkt 0.3.0. Eine Änderung am Quellcode allein ist noch keine veröffentlichte Desktop-Version; neue installierbare Stände werden zusätzlich als GitHub Release bereitgestellt.
+**Einmaliger Übergang von 0.2.0:** Diese Version besitzt noch kein Update-Menü. Führe den aktuellen Installer einmal über die bestehende Installation aus. Danach verwendest du das Update-Menü. Falls du noch keine Ausgabe installiert hast, installierst du direkt die aktuelle Version. Eine Änderung am Quellcode allein ist noch keine veröffentlichte Desktop-Version; neue installierbare Stände werden zusätzlich als GitHub Release bereitgestellt.
 
 Die Update-Prüfung nutzt HTTPS und den GitHub-Prüfwert. Dies ist keine Authenticode-Signatur. Ein fehlender oder abweichender Prüfwert verhindert den Update-Start. Die vollständige Aktualisierung einer vorhandenen Windows-Installation wurde auf diesem Entwicklungs-PC nicht automatisch ausgeführt; geprüft werden Erkennung, Download, Integrität, Desktop-Menü und Paketstart.
+
+## Wenn die Oberfläche beim Start nicht lädt
+
+Ab **0.3.1** wird der lokale Dokumentdienst vor dem Laden geprüft. Die Desktop-Oberfläche verbindet sich direkt mit diesem internen Dienst, unabhängig von System-Proxy-Regeln. Vorübergehende Ladefehler wie **ERR_FAILED (-2)** werden bis zu dreimal automatisch wiederholt. Wenn die Seite trotz abgebrochener Navigation bereits bereit ist, bleibt sie geöffnet. Nach erfolglosen Versuchen stehen **Erneut versuchen**, **Startprotokoll öffnen** und **Beenden** zur Verfügung.
+
+Unter **Hilfe → Startprotokoll öffnen** findest du technische Startmeldungen. Die letzten beiden Startläufe liegen unter **%APPDATA%/SchriftenMinisterium/logs/**; Dokumentinhalte werden dort nicht protokolliert. **Datei → Projektübersicht** wechselt innerhalb der vorhandenen Oberfläche und speichert offene Änderungen, statt ein konkurrierendes vollständiges Neuladen auszulösen.
+
+Falls eine ältere Ausgabe gar nicht bis zum Update-Menü startet: Fehlermeldung schließen und die Anwendung erneut starten. Wenn nötig den aktuellen Installer über die vorhandene Installation ausführen, ohne vorherige Deinstallation und ohne Löschen des Datenordners. Der beobachtete Fehler in 0.3.0 trat sporadisch auf; der erneute Start mit dem bestehenden Profil war erfolgreich. Die konkrete ursprüngliche Chromium-Ursache ließ sich im Nachhinein nicht sicher feststellen.
 
 ## Projekte und Dokumente
 
