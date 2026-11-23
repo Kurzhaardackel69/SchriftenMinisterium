@@ -1,0 +1,30 @@
+{
+  "name": "schriftenministerium",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "desktop/main.cjs",
+  "description": "Dein Arbeitsplatz für schriftliche Dokumentationi",
+  "license": "MIT",
+  "author": "SchriftenMinisterium contributors",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "desktop": "electron .",
+    "dist:win": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": { "electron": "45.4.1", "electron-builder": "26.18.0" },
+  "build": {
+    "appId": "de.schriftenministerium.desktop",
+    "productName": "SchriftenMinisterium",
+    "copyright": "Copyright 2026 SchriftenMinisterium contributors",
+    "directories": { "output": "release", "buildResources": "desktop/assets" },
+    "files": ["desktop/main.cjs", "desktop/assets/icon.ico", "server.mjs", "lib/**", "public/**", "package.json", "LICENSE", "THIRD_PARTY_NOTICES.md"],
+    "extraResources": [{ "from": "desktop/runtime", "to": "runtime" }],
+    "win": { "target": "nsis", "icon": "desktop/assets/icon.ico", "signExecutable": false, "artifactName": "SchriftenMinisterium-Setup-${version}-${arch}.${ext}" },
+    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "createStartMenuShortcut": true, "shortcutName": "SchriftenMinisterium", "deleteAppDataOnUninstall": false, "installerLanguages": ["de_DE"], "language": "1031" }
+  }
+}

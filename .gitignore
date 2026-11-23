@@ -1,0 +1,9 @@
+data/
+.test-data/
+*.log
+.DS_Store
+node_modules/
+.build-tools/
+.build-cache/
+release/
+desktop/runtime/

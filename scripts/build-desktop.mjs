@@ -1,0 +1,13 @@
+import path from 'node:path';
+import { spawn } from 'node:child_process';
+import fs from 'node:fs/promises';
+const root = path.resolve(import.meta.dirname,'..');
+const shims = path.join(root,'.build-tools/shims'); await fs.mkdir(shims,{recursive:true});
+await fs.writeFile(path.join(shims,'npm.cmd'),`@echo off\r\n"${process.execPath}" "${path.join(root,'.build-tools/package/bin/npm-cli.js')}" %*\r\n`);
+process.env.PATH = [shims,path.dirname(process.execPath),process.env.PATH || ''].join(path.delimiter);
+process.env.npm_execpath = path.join(root,'.build-tools/package/bin/npm-cli.js');
+process.env.CSC_IDENTITY_AUTO_DISCOVERY = 'false';
+process.env.ELECTRON_CACHE = path.join(root,'.build-cache/electron');
+process.env.ELECTRON_BUILDER_CACHE = path.join(root,'.build-cache/electron-builder');
+const child = spawn(process.execPath,[path.join(root,'node_modules/electron-builder/out/cli/cli.js'),'--win','nsis','--x64'],{cwd:root,env:process.env,stdio:'inherit',windowsHide:true});
+child.on('error',error=>{console.error(error);process.exitCode=1;});child.on('exit',code=>{process.exitCode=code || 0;});

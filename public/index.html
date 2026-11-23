@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#142420">
+  <title>SchriftenMinisterium · Dein Arbeitsplatz für schriftliche Dokumentationi</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/library.css">
+  <link rel="stylesheet" href="/workspace.css">
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7V5a1 1 0 0 1 1-1h5l2 3h9a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8zM14 3v6h5M8 13h8M8 17h6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+  <symbol id="i-git" viewBox="0 0 24 24"><circle cx="6" cy="5" r="3"/><circle cx="6" cy="19" r="3"/><circle cx="18" cy="6" r="3"/><path d="M6 8v8m12-7a9 9 0 0 1-9 9"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-5 2-5-3-7-3m14 6v-4a3.5 3.5 0 0 0-1-3c3-.4 6-1.5 6-6A5 5 0 0 0 19.5 5a5 5 0 0 0-.2-4S18 1 15 3a13 13 0 0 0-6 0C6 1 4.7 1 4.7 1a5 5 0 0 0-.2 4A5 5 0 0 0 3 9c0 4.5 3 5.6 6 6a3.5 3.5 0 0 0-1 3v4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="m9 3-1 3-3 1-2 3 2 2v3l3 1 1 3h5l1-3 3-1 2-3-2-2V7l-3-1-1-3z"/><circle cx="11.5" cy="11" r="3"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 4 12 8-12 8z"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 6 6 6-6 6m9 0h8"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5C8 2 3 3 3 3v16s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2zm0 0v16"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M5 7a8 8 0 0 1 13-2l2 2M4 17l2 2a8 8 0 0 0 13-2"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 3v18m-7-7 7 7 7-7"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 21V3m-7 7 7-7 7 7"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 18 6-6 4 4 3-3 5 5"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3v1"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 3h8l10 10-8 8L3 11z"/><circle cx="7.5" cy="7.5" r="1"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><path d="M4 8h16v13H4zM3 3h18v5H3zm6 9h6"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m10 5-7 7 7 7M3 12h18"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 4 5 5M4 15 16 3l5 5L9 20l-6 1z"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18m-10 0v11"/></symbol>
+</defs></svg>
+<div class="library-view" id="library-view">
+  <header class="library-topbar">
+    <button id="library-nav-toggle" class="library-nav-toggle" aria-label="Projektnavigation öffnen" aria-expanded="false"><svg class="icon"><use href="#i-grid"/></svg></button>
+    <a class="brand" href="#/projects"><img src="/icon.svg" alt="" width="32" height="32"><span>Schriften<span class="brand-second">Ministerium</span></span></a>
+    <span class="library-top-label">Dein Arbeitsplatz für schriftliche Dokumentationi</span>
+    <div class="top-spacer"></div>
+    <span class="local-badge"><span></span> Lokal auf deinem PC</span>
+    <button id="library-help" class="library-help"><svg class="icon"><use href="#i-help"/></svg>Hilfe</button>
+    <div class="library-avatar" title="Dein lokaler Arbeitsplatz">DU</div>
+  </header>
+  <div class="library-shell">
+    <aside class="library-sidebar" aria-label="Projektverwaltung">
+      <div class="library-workspace-label">DEIN ARBEITSBEREICH</div>
+      <nav class="library-navigation" aria-label="Projektfilter">
+        <button id="filter-all" class="library-nav active"><svg class="icon"><use href="#i-folder"/></svg><span>Alle Projekte</span><span class="nav-count" id="count-all">0</span></button>
+        <button id="filter-starred" class="library-nav"><svg class="icon"><use href="#i-star"/></svg><span>Favoriten</span><span class="nav-count" id="count-starred">0</span></button>
+        <button id="filter-archive" class="library-nav"><svg class="icon"><use href="#i-archive"/></svg><span>Archiv</span><span class="nav-count" id="count-archive">0</span></button>
+      </nav>
+      <div class="library-sidebar-rule"></div>
+      <div class="library-tag-heading"><h2>DEINE TAGS</h2><button id="create-tag" class="icon-button" aria-label="Neuen Tag erstellen" title="Neuer Tag"><svg class="icon"><use href="#i-plus"/></svg></button></div>
+      <div id="library-tags" class="library-tags"></div>
+      <button id="filter-untagged" class="library-nav untagged"><svg class="icon"><use href="#i-tag"/></svg><span>Ohne Tag</span><span class="nav-count" id="count-untagged">0</span></button>
+      <div class="library-sidebar-rule"></div>
+      <button id="filter-templates" class="library-nav"><svg class="icon"><use href="#i-grid"/></svg><span>Vorlagen</span></button>
+      <div class="top-spacer"></div>
+      <div class="library-storage"><span class="storage-symbol"><svg class="icon"><use href="#i-check"/></svg></span><div><strong>Deine Dateien. Dein Rechner.</strong><span>Projekte werden lokal gespeichert.</span></div></div>
+    </aside>
+    <main class="library-main">
+      <div class="library-notice"><span class="notice-icon"><svg class="icon"><use href="#i-book"/></svg></span><div><strong>Alles an einem Ort. Platz für jeden Gedanken.</strong><span>Organisiere deine Projekte mit Tags. Öffne ein Projekt und arbeite direkt an deinen Dokumenten.</span></div><span class="notice-wordmark" aria-hidden="true"><svg class="icon"><use href="#i-file"/></svg></span></div>
+      <div class="library-page-heading"><div><div class="eyebrow">DEIN SCHREIBTISCH</div><h1 id="library-title">Alle Projekte <span id="project-count">0</span></h1><p id="library-subtitle">Von der ersten Idee bis zur letzten Seite.</p></div><div class="library-heading-actions"><button id="library-import" class="secondary-button"><svg class="icon"><use href="#i-upload"/></svg>Importieren</button><button id="library-new" class="primary-button"><svg class="icon"><use href="#i-plus"/></svg>Neues Projekt</button></div></div>
+      <div id="project-list-view">
+        <div class="library-tools"><label class="project-search"><svg class="icon"><use href="#i-search"/></svg><input id="project-search" type="search" placeholder="Projekte und Tags durchsuchen …" aria-label="Projekte durchsuchen"><kbd>Strg K</kbd></label><select id="project-sort" aria-label="Projekte sortieren"><option value="updated">Zuletzt geändert</option><option value="name">Name A–Z</option><option value="created">Zuletzt erstellt</option></select></div>
+        <div class="bulk-toolbar" id="bulk-toolbar" hidden><span id="selection-count"></span><button id="bulk-tags"><svg class="icon"><use href="#i-tag"/></svg>Tags hinzufügen</button><button id="bulk-archive"><svg class="icon"><use href="#i-archive"/></svg>Archivieren</button><button id="clear-selection" class="icon-button" aria-label="Auswahl aufheben"><svg class="icon"><use href="#i-close"/></svg></button></div>
+        <div class="project-table-wrap"><table class="project-table"><thead><tr><th class="check-column"><input id="select-projects" type="checkbox" aria-label="Alle sichtbaren Projekte auswählen"></th><th class="star-column"></th><th>Projektname</th><th>Tags</th><th class="owner-column">Eigentümer</th><th class="date-column">Zuletzt geändert</th><th class="row-action-column"></th></tr></thead><tbody id="project-rows"></tbody></table><div class="library-empty" id="library-empty" hidden><svg class="icon"><use href="#i-folder"/></svg><h2 id="empty-title">Hier ist Platz für deine Projekte.</h2><p id="empty-copy">Erstelle ein Projekt oder importiere eine Dokumentvorlage.</p></div></div>
+        <div class="library-list-footer"><span id="library-result-count"></span><span>Ein Klick auf den Projektnamen öffnet den Editor.</span></div>
+      </div>
+      <div id="template-list-view" class="template-grid" hidden></div>
+    </main>
+  </div>
+</div>
+<div class="app" id="editor-app" hidden>
+  <header class="topbar">
+    <a class="brand editor-brand" href="#/projects" aria-label="SchriftenMinisterium · Zur Projektübersicht"><img src="/icon.svg" alt="" width="29" height="29"></a>
+    <button id="back-projects" class="back-projects"><svg class="icon"><use href="#i-back"/></svg>Projekte</button>
+    <div class="top-divider"></div>
+    <button id="project-switch" class="project-switch" title="Geöffnete Projekte wechseln" aria-haspopup="menu" aria-expanded="false"><span id="project-name">Projekt laden…</span><svg class="icon"><use href="#i-chevron"/></svg></button>
+    <span class="local-badge"><span></span> Lokal</span>
+    <div class="top-spacer"></div>
+    <span class="save-state" id="save-state" role="status">Verbinden…</span>
+    <button class="top-button" id="github-button"><svg class="icon"><use href="#i-github"/></svg><span>GitHub</span></button>
+    <label class="layout-control"><svg class="icon"><use href="#i-layout"/></svg><select id="editor-layout" aria-label="Arbeitsbereich-Layout"><option value="split">Editor & PDF</option><option value="code">Nur Editor</option><option value="pdf">Nur PDF</option></select></label>
+    <button class="compile-button" id="compile-button"><svg class="icon"><use href="#i-play"/></svg><span>Kompilieren</span><kbd>Ctrl ↵</kbd></button>
+  </header>
+  <div class="workspace">
+    <nav class="rail" aria-label="Arbeitsbereiche">
+      <button class="rail-button active" id="nav-files" title="Dateien" aria-label="Dateien"><svg class="icon"><use href="#i-folder"/></svg></button>
+      <button class="rail-button" id="nav-search" title="Im Dokument suchen (Strg+F)" aria-label="Suchen"><svg class="icon"><use href="#i-search"/></svg></button>
+      <button class="rail-button" id="nav-git" title="Versionsverlauf und GitHub" aria-label="GitHub"><svg class="icon"><use href="#i-git"/></svg></button>
+      <div class="rail-spacer"></div>
+      <button class="rail-button" id="nav-help" title="Hilfe und Tastenkürzel" aria-label="Hilfe"><svg class="icon"><use href="#i-help"/></svg></button>
+      <button class="rail-button" id="nav-settings" title="Projekteinstellungen" aria-label="Einstellungen"><svg class="icon"><use href="#i-settings"/></svg></button>
+      <div class="local-avatar" title="Dein lokaler Arbeitsplatz">DU</div>
+    </nav>
+    <aside class="sidebar" id="sidebar">
+      <div class="panel-heading"><h2>Projektdateien</h2><div class="heading-actions"><button id="new-file" class="icon-button" title="Neue Datei" aria-label="Neue Datei"><svg class="icon"><use href="#i-plus"/></svg></button><button id="upload-file" class="icon-button" title="Dateien hochladen" aria-label="Dateien hochladen"><svg class="icon"><use href="#i-upload"/></svg></button></div></div>
+      <div class="project-root"><svg class="icon"><use href="#i-folder"/></svg><span id="tree-project-name">Mein Projekt</span></div>
+      <div id="file-tree" class="file-tree" role="tree" aria-label="Projektdateien"></div>
+      <div id="outline-splitter" class="panel-divider horizontal-divider" role="separator" aria-label="Höhe von Dateibaum und Gliederung" aria-orientation="horizontal" tabindex="0"></div>
+      <div class="sidebar-bottom">
+        <div class="outline-heading"><h2>Gliederung</h2><svg class="icon"><use href="#i-book"/></svg></div>
+        <div class="outline" id="outline"></div>
+      </div>
+      <button id="sidebar-git" class="sidebar-git"><svg class="icon"><use href="#i-git"/></svg><span id="branch-label">Mit GitHub verbinden</span><svg class="icon small"><use href="#i-chevron"/></svg></button>
+    </aside>
+    <div id="sidebar-splitter" class="panel-divider vertical-divider" role="separator" aria-label="Breite des Dateibereichs" aria-orientation="vertical" tabindex="0"></div>
+    <main class="editor-pane" id="editor-pane">
+      <div class="editor-tabs"><div id="open-tabs" class="open-tabs" role="tablist" aria-label="Geöffnete Dateien"></div><span id="tab-name" class="sr-only">main.tex</span><span id="dirty-dot" class="dirty-dot" hidden></span><div class="tab-spacer"></div><button id="file-menu-button" class="icon-button" aria-label="Dateiaktionen" title="Dateiaktionen"><svg class="icon"><use href="#i-more"/></svg></button></div>
+      <div class="editor-breadcrumb"><span id="breadcrumb">main.tex</span><span class="language-badge" id="language-badge">Quelltext</span></div>
+      <div class="editor-tools" aria-label="Dokumentwerkzeuge"><button id="tool-undo" title="Rückgängig" aria-label="Rückgängig">↶</button><button id="tool-redo" title="Wiederholen" aria-label="Wiederholen">↷</button><span class="tool-divider"></span><button id="tool-bold" title="Fett setzen" aria-label="Fett setzen"><b>B</b></button><button id="tool-italic" title="Kursiv setzen" aria-label="Kursiv setzen"><i>I</i></button><button id="tool-section" title="Abschnitt einfügen" aria-label="Abschnitt einfügen">H</button><span class="tool-divider"></span><button id="tool-math" title="Formel einfügen" aria-label="Formel einfügen">∑</button><button id="tool-cite" title="Quellenverweis einfügen" aria-label="Quellenverweis einfügen">[ ]</button><span class="tab-spacer"></span><span class="code-mode">Quelltext</span></div>
+      <div class="find-bar" id="find-bar" hidden><input id="find-input" placeholder="Im Dokument suchen…" aria-label="Suchtext"><span id="find-count"></span><button id="find-next" class="small-button">Nächster</button><button id="find-close" class="icon-button" aria-label="Suche schließen"><svg class="icon"><use href="#i-close"/></svg></button></div>
+      <div class="editor-area" id="editor-area">
+        <div class="line-numbers" id="line-numbers" aria-hidden="true">1</div>
+        <div class="code-container"><pre id="highlight" aria-hidden="true"><code></code></pre><textarea id="editor" aria-label="Dokument-Quelltext" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" disabled></textarea></div>
+        <div class="binary-placeholder" id="binary-placeholder" hidden><svg class="icon"><use href="#i-image"/></svg><h3 id="binary-name"></h3><p>Diese Datei wird beim Kompilieren eingebunden.</p><button class="secondary-button" id="binary-download">Datei herunterladen</button></div>
+      </div>
+      <div class="editor-footer"><span><span class="footer-dot"></span><span id="editor-language">Quelltext</span></span><span id="word-count">0 Wörter</span><span id="cursor-position">Z 1, S 1</span><span>UTF-8</span></div>
+    </main>
+    <div class="splitter" id="splitter" role="separator" aria-label="Breite von Editor und Vorschau" aria-orientation="vertical" tabindex="0"></div>
+    <section class="preview-pane" aria-label="PDF-Vorschau">
+      <div class="preview-toolbar"><div class="preview-title"><svg class="icon"><use href="#i-file"/></svg><h2>PDF-Vorschau</h2></div><div class="tab-spacer"></div><select id="zoom" aria-label="PDF-Vergrößerung"><option value="page-width">Seitenbreite</option><option value="75">75 %</option><option value="100">100 %</option><option value="125">125 %</option><option value="150">150 %</option></select><button id="download-pdf" class="icon-button" title="PDF herunterladen" aria-label="PDF herunterladen" disabled><svg class="icon"><use href="#i-download"/></svg></button></div>
+      <div class="preview-status" id="preview-status"><span class="status-label">Dein Dokument, fertig gesetzt.</span><span class="engine-label">Lokale PDF-Erzeugung</span></div>
+      <div class="pdf-container" id="pdf-container"><div id="pdf-frame" class="pdf-pages" role="document" aria-label="Kompiliertes PDF" hidden></div><div class="preview-empty" id="preview-empty"><div class="paper-mark"><span>SM</span><div></div><div></div><div></div></div><span class="eyebrow">VON DER IDEE ZUR SEITE</span><h1>Raum für deine<br>nächste große Idee.</h1><p>Schreibe deinen Text. Kompiliere dein Dokument.<br>Hier wird dein fertiges PDF sichtbar.</p><button id="first-compile" class="secondary-button"><svg class="icon"><use href="#i-play"/></svg>Erstes PDF erstellen</button><span class="shortcut-hint">oder <kbd>Strg</kbd> + <kbd>Enter</kbd></span></div><div id="compile-overlay" class="compile-overlay" hidden><span class="spinner"></span><strong>Dein Dokument wird gesetzt…</strong><span>Die erste PDF-Erzeugung kann etwas länger dauern.</span></div></div>
+      <div id="log-splitter" class="panel-divider horizontal-divider" role="separator" aria-label="Höhe von PDF und Protokoll" aria-orientation="horizontal" tabindex="0" hidden></div>
+      <div class="log-panel" id="log-panel" hidden><div class="log-heading"><h3>Kompilierungsprotokoll</h3><button id="copy-log" class="small-button">Kopieren</button><button id="close-log" class="icon-button" aria-label="Protokoll schließen"><svg class="icon"><use href="#i-close"/></svg></button></div><pre id="log-content">Noch keine Kompilierung.</pre></div>
+      <button class="preview-footer" id="toggle-log"><svg class="icon"><use href="#i-terminal"/></svg><span id="compile-summary">Bereit zum Kompilieren</span><span class="tab-spacer"></span><span>Protokoll</span><svg class="icon small"><use href="#i-chevron"/></svg></button>
+    </section>
+  </div>
+</div>
+<dialog id="modal" aria-labelledby="modal-title"><div class="modal-header"><div><span class="eyebrow" id="modal-eyebrow">SCHRIFTENMINISTERIUM</span><h2 id="modal-title"></h2></div><button class="icon-button" id="modal-close" aria-label="Dialog schließen"><svg class="icon"><use href="#i-close"/></svg></button></div><div id="modal-body"></div><div id="modal-error" class="inline-error" hidden role="alert"></div><div id="modal-footer" class="modal-footer"></div></dialog>
+<div id="toast" class="toast" hidden role="status"></div>
+<input type="file" id="file-input" multiple hidden>
+<div id="project-menu" class="project-menu" role="menu" aria-label="Geöffnete Projekte" hidden></div>
+<div id="file-menu" class="file-menu" hidden><button id="rename-file">Datei umbenennen</button><button id="set-main">Als Hauptdatei festlegen</button><button id="delete-file" class="danger-text">Datei löschen</button></div>
+</body>
+</html>
