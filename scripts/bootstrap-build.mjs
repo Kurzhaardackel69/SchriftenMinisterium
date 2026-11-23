@@ -22,4 +22,13 @@ const env = {
   npm_config_fund: 'false', npm_config_audit: 'false'
 };
 const result = await run(process.execPath, [npm, 'install', '--no-fund', '--no-audit'], { cwd: root, timeout: 900000, env });
-console.log(result.output); if (result.code) process.exitCode = result.code;
+console.log(result.output);
+if (result.code) process.exitCode = result.code;
+else {
+  // npm may withhold dependency lifecycle scripts. Run the pinned Electron installer explicitly.
+  try { await fs.access(path.join(root, 'node_modules/electron/dist/electron.exe')); }
+  catch {
+    const electron = await run(process.execPath, [path.join(root, 'node_modules/electron/install.js')], { cwd: root, timeout: 900000, env });
+    console.log(electron.output); if (electron.code) process.exitCode = electron.code;
+  }
+}

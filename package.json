@@ -1,6 +1,6 @@
 {
   "name": "schriftenministerium",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "main": "desktop/main.cjs",
@@ -22,7 +22,7 @@
     "productName": "SchriftenMinisterium",
     "copyright": "Copyright 2026 SchriftenMinisterium contributors",
     "directories": { "output": "release", "buildResources": "desktop/assets" },
-    "files": ["desktop/main.cjs", "desktop/assets/icon.ico", "server.mjs", "lib/**", "public/**", "package.json", "LICENSE", "THIRD_PARTY_NOTICES.md"],
+    "files": ["desktop/*.cjs", "desktop/assets/icon.ico", "server.mjs", "lib/**", "public/**", "package.json", "LICENSE", "THIRD_PARTY_NOTICES.md"],
     "extraResources": [{ "from": "desktop/runtime", "to": "runtime" }],
     "win": { "target": "nsis", "icon": "desktop/assets/icon.ico", "signExecutable": false, "artifactName": "SchriftenMinisterium-Setup-${version}-${arch}.${ext}" },
     "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "createStartMenuShortcut": true, "shortcutName": "SchriftenMinisterium", "deleteAppDataOnUninstall": false, "installerLanguages": ["de_DE"], "language": "1031" }

@@ -6,7 +6,7 @@ Eine lokale Anwendung zum Organisieren, Schreiben und Erstellen von PDF-Dokument
 
 ## Windows installieren
 
-Die fertige Desktop-Ausgabe liegt unter **release/SchriftenMinisterium-Setup-0.2.0-x64.exe** und als Download in den [GitHub Releases](https://github.com/Kurzhaardackel69/SchriftenMinisterium/releases). Der Installer richtet die Anwendung für das aktuelle Windows-Konto ein und bietet Desktop- und Startmenü-Verknüpfungen an. Die Anwendung hat ein eigenes Fenster; ein Browser oder ein separates Serverfenster ist für die Benutzung nicht erforderlich. Die Programmdatei ist derzeit nicht mit einem kommerziellen Code-Signing-Zertifikat signiert.
+Die fertige Desktop-Ausgabe liegt unter **release/SchriftenMinisterium-Setup-0.3.0-x64.exe** und als Download in den [GitHub Releases](https://github.com/Kurzhaardackel69/SchriftenMinisterium/releases). Der Installer richtet die Anwendung für das aktuelle Windows-Konto ein und bietet Desktop- und Startmenü-Verknüpfungen an. Die Anwendung hat ein eigenes Fenster; ein Browser oder ein separates Serverfenster ist für die Benutzung nicht erforderlich. Die Programmdatei ist derzeit nicht mit einem kommerziellen Code-Signing-Zertifikat signiert.
 
 Node.js und der Standard-PDF-Compiler sind im Desktop-Paket enthalten. Git bleibt optional und wird für die GitHub-Funktionen separat benötigt. Der Datenordner liegt bei der installierten Anwendung unter **%APPDATA%/SchriftenMinisterium/projects**; er bleibt bei der Deinstallation erhalten.
 
@@ -15,6 +15,16 @@ Node.js und der Standard-PDF-Compiler sind im Desktop-Paket enthalten. Git bleib
 Vorhandene Projekte aus der bisherigen lokalen Version werden über **Datei → Vorhandene Projekte übernehmen** importiert: Wähle den bisherigen **data**-Ordner. Bereits vorhandene Projekt-IDs werden übersprungen und die Originaldateien bleiben erhalten. **Datei → Datenordner öffnen** zeigt den aktuellen Speicherort.
 
 Für die Entwicklung startet **node server.mjs** weiterhin den lokalen HTTP-Dienst. **npm run desktop** startet die Desktop-Oberfläche nach Einrichtung der Bauwerkzeuge. Änderungen am Quelltext werden über GitHub verwaltet; historische Installer gehören in GitHub Releases.
+
+## Installierte Anwendung aktualisieren
+
+Ab Version **0.3.0** steht im nativen Menü **Hilfe → Nach Updates suchen** zur Verfügung. Die Prüfung erfolgt erst nach deinem Klick und liest ausschließlich stabile Releases dieses Anwendungs-Repositorys. Nach deiner Auswahl lädt die Anwendung den neuen Windows-Installer, prüft Dateigröße und den von GitHub bereitgestellten SHA-256-Wert und bietet **Jetzt aktualisieren und neu starten** an. Offene Dokumentänderungen werden vor dem Start des Updates gespeichert; bei einem Speicherfehler oder einer laufenden Projektaktion wird der Start abgebrochen.
+
+Das Update ersetzt die vorhandenen Programmdateien am bisherigen Installationsort. Es ist keine vorherige Deinstallation und keine erneute Projekteinrichtung nötig. Die Anwendungskennung bleibt unverändert und der getrennte Datenordner im Benutzerprofil bleibt erhalten. Nach dem Update startet die Anwendung erneut. Geladene Update-Dateien werden beim nächsten Programmstart aus dem eigenen Update-Cache entfernt; Dokumentprojekte gehören nie zu diesem Cache.
+
+**Einmaliger Übergang von 0.2.0:** Diese Version besitzt noch kein Update-Menü. Führe den aktuellen Installer einmal über die bestehende Installation aus. Danach verwendest du das Update-Menü. Falls du noch keine Ausgabe installiert hast, installierst du direkt 0.3.0. Eine Änderung am Quellcode allein ist noch keine veröffentlichte Desktop-Version; neue installierbare Stände werden zusätzlich als GitHub Release bereitgestellt.
+
+Die Update-Prüfung nutzt HTTPS und den GitHub-Prüfwert. Dies ist keine Authenticode-Signatur. Ein fehlender oder abweichender Prüfwert verhindert den Update-Start. Die vollständige Aktualisierung einer vorhandenen Windows-Installation wurde auf diesem Entwicklungs-PC nicht automatisch ausgeführt; geprüft werden Erkennung, Download, Integrität, Desktop-Menü und Paketstart.
 
 ## Projekte und Dokumente
 
@@ -47,6 +57,16 @@ Archivierte Projekte bleiben vollständig erhalten. Sie können im Archiv wieder
 Unterordner, Bilder, Literatur-, Stil- und Lizenzdateien bleiben erhalten. Ein einzelnes PDF enthält keinen bearbeitbaren Quelltext. Die Quelldateien werden beim Import nicht automatisch umgeschrieben. Ein erfolgreicher Import garantiert noch keine Kompilierung: Die benötigten Pakete und Werkzeuge müssen zur lokalen PDF-Erzeugung passen.
 
 Importgrenzen: 25 MB ZIP, 100 MB entpackt, 30 MB pro Datei und 3.000 ZIP-Einträge. Passwortgeschützte Archive, symbolische Links, ZIP64, doppelte Dateinamen und Dateinamen ohne UTF-8 werden abgelehnt. Ein gemeinsamer äußerer ZIP-Ordner wird entfernt.
+
+## Projekte teilen und Einladungen vorbereiten
+
+Im Editor öffnet **Teilen** den Freigabe-Dialog; dieselbe Funktion ist in der Projektübersicht unter **Projekt verwalten → Teilen** erreichbar. **Projekt-ZIP herunterladen** gibt den aktuellen Quelltext als unabhängige Kopie weiter. Empfänger importieren das ZIP in ihrer Anwendung; Änderungen der Kopien werden nicht automatisch synchronisiert.
+
+Für den späteren Serverbetrieb können Personen mit Name, E-Mail-Adresse und den vorgesehenen Rechten **Lesen** oder **Bearbeiten** vorgemerkt werden. Vorgesehene Rechte können geändert und Vormerkungen entfernt werden. Jede Vormerkung ist ausdrücklich als **noch nicht versendet** gekennzeichnet. Ohne Server-Verbindung gibt es keine aktiven Einladungslinks, keinen Versand und keine erteilten Netzwerk-Zugriffsrechte. Der spätere Server muss Konten, Anmeldung, Rechteprüfung und gemeinsames Bearbeiten ergänzen; die Vormerkungen werden nicht automatisch versendet.
+
+Die Vormerkliste liegt lokal in **<Projekt-ID>/sharing.json**, getrennt von den Quelldateien. Sie wird weder im Projekt-ZIP noch bei Git-Commits des Dokuments weitergegeben. Bei einer Sicherung des gesamten Datenordners ist sie enthalten.
+
+![Freigabe-Dialog mit lokal vorgemerkter Testperson](docs/teilen.png)
 
 
 
@@ -88,6 +108,7 @@ data/
   library.json        Tags und Farben
   <Projekt-ID>/
     project.json      Projektname, Hauptdatei und Organisation
+    sharing.json      Lokal vorgemerkte Einladungen (optional)
     files/            Deine Quelldateien und ggf. Git-Verlauf
     build/            Letztes erfolgreiches PDF und Protokoll
   tex-cache/          Paketcache für die lokale PDF-Erzeugung
@@ -95,7 +116,7 @@ data/
 
 Für eine vollständige Sicherung den gesamten **data-Ordner bei beendeter Anwendung kopieren**. Ein Projekt-ZIP enthält die Quelldateien, aber keinen Git-Verlauf, keine Projektmetadaten und keine Build-Ausgaben. GitHub sichert ausschließlich committete und gepushte Dateien.
 
-Die Oberfläche lädt keine externen Schriften, Skripte oder Analysedienste. Die Standard-PDF-Erzeugung kann beim ersten Durchlauf benötigte Satzpakete herunterladen und danach aus dem Cache verwenden.
+Die Oberfläche lädt keine externen Schriften, Skripte oder Analysedienste. Die Standard-PDF-Erzeugung kann beim ersten Durchlauf benötigte Satzpakete herunterladen und danach aus dem Cache verwenden. Die manuell gestartete Desktop-Update-Prüfung ruft GitHub ab; dabei werden keine Dokumentinhalte oder Vormerkliste übertragen.
 
 Weitere Grenzen: 2 MB pro bearbeitbarer Textdatei, 10 MB pro Einzelupload, 100 MB pro Kompilierung/Export und drei Minuten pro Standard-Kompilierung beziehungsweise zehn Minuten für die gesamte vollständige Werkzeugkette. Nur ein Server darf denselben Datenordner verwenden. Externe Programmausführung ist standardmäßig ausgeschaltet. Bei einem vollständigen Compiler kann sie für vertrauenswürdige eigene Projekte explizit aktiviert werden. Der mitgelieferte Standard-Compiler läuft weiterhin ohne Shell-Escape. Dies ersetzt keine vollständige Betriebssystem-Sandbox.
 

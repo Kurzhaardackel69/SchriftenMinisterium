@@ -2,10 +2,13 @@ const { app, BrowserWindow, Menu, dialog, shell, session } = require('electron')
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { pathToFileURL } = require('node:url');
+const { spawn } = require('node:child_process');
+const { checkForUpdate, downloadUpdate, verifyInstaller, cleanUpdateCache } = require('./updates.cjs');
 
 app.setName('SchriftenMinisterium');
 if (process.env.SCHRIFTENMINISTERIUM_DESKTOP_PROFILE) app.setPath('userData', path.resolve(process.env.SCHRIFTENMINISTERIUM_DESKTOP_PROFILE));
 let window, server, baseUrl, dataRoot, shuttingDown = false;
+let updating = false;
 const hasLock = app.requestSingleInstanceLock();
 if (!hasLock) app.quit();
 else {
@@ -44,8 +47,44 @@ async function chooseTools() {
   await dialog.showMessageBox(window,{type:'info',message:'Programmordner gespeichert.',detail:'Du kannst den passenden Compiler in den Projekteinstellungen auswählen.'});
 }
 function guarded(action) { return () => action().catch(error=>dialog.showErrorBox('Aktion fehlgeschlagen',error.message)); }
+async function updateApplication() {
+  if (updating) return;
+  if (!app.isPackaged) {
+    await dialog.showMessageBox(window, { type:'info', message:'Updates sind in der installierten Desktop-Ausgabe verfügbar.', detail:'Die Entwicklungsversion wird über den Quellcode aktualisiert.' }); return;
+  }
+  updating = true;
+  const title = window.getTitle();
+  try {
+    window.setProgressBar(2);
+    const asset = await checkForUpdate(app.getVersion());
+    window.setProgressBar(-1);
+    if (!asset) {
+      await dialog.showMessageBox(window, { type:'info', message:'Du verwendest die aktuelle Version.', detail:`SchriftenMinisterium ${app.getVersion()}` }); return;
+    }
+    const answer = await dialog.showMessageBox(window, { type:'info', buttons:['Update herunterladen', 'Später'], defaultId:0, cancelId:1, message:`Version ${asset.version} ist verfügbar.`, detail:`Installiert: ${app.getVersion()}\nDownload: ${Math.ceil(asset.size / 1024 / 1024)} MB\n\nDas Update ersetzt die Programmdateien. Projekte und Einstellungen bleiben im Benutzerprofil erhalten.` });
+    if (answer.response !== 0) return;
+    const installer = await downloadUpdate(asset, path.join(app.getPath('userData'), 'updates'), { onProgress: progress => { window.setProgressBar(progress); window.setTitle(`Update wird geladen · ${Math.round(progress * 100)} % · SchriftenMinisterium`); } });
+    window.setProgressBar(-1); window.setTitle(title);
+    const install = await dialog.showMessageBox(window, { type:'info', buttons:['Jetzt aktualisieren und neu starten', 'Später'], defaultId:0, cancelId:1, message:`Version ${asset.version} ist bereit.`, detail:'Die Anwendung speichert offene Dokumente, schließt sich und startet nach dem Update erneut. Eine laufende Kompilierung muss zuerst abgeschlossen sein.' });
+    if (install.response !== 0) return;
+    if (server.hasActiveJobs()) throw new Error('Bitte warte, bis die laufenden Projektaktionen abgeschlossen sind, und starte die Update-Prüfung erneut.');
+    window.setEnabled(false);
+    const saved = await window.webContents.executeJavaScript('window.prepareDesktopUpdate ? window.prepareDesktopUpdate() : false');
+    if (!saved || server.hasActiveJobs()) throw new Error('Offene Änderungen konnten noch nicht vollständig gespeichert werden. Das Update wurde nicht gestartet.');
+    await verifyInstaller(installer, asset);
+    const child = spawn(installer, ['/S', '--updated', '--force-run'], { detached:true, stdio:'ignore', windowsHide:true });
+    await new Promise((resolve,reject) => { child.once('spawn',resolve); child.once('error',reject); }); child.unref();
+    app.quit();
+  } catch (error) { dialog.showErrorBox('Update nicht durchgeführt', error.message); }
+  finally {
+    updating = false;
+    if (window && !window.isDestroyed()) { window.setEnabled(true); window.setProgressBar(-1); window.setTitle(title); }
+  }
+}
 async function start() {
   dataRoot = path.resolve(process.env.SCHRIFTENMINISTERIUM_DATA || path.join(app.getPath('userData'),'projects'));
+  // Own update cache only; project data and application settings are never cleanup targets.
+  await cleanUpdateCache(path.join(app.getPath('userData'), 'updates')).catch(() => {});
   const runtime = app.isPackaged ? path.join(process.resourcesPath,'runtime') : path.join(__dirname,'runtime');
   process.env.TECTONIC_PATH = process.env.TECTONIC_PATH || path.join(runtime,'tectonic.exe');
   process.env.PATH = [runtime, path.join(process.env.ProgramFiles || 'C:/Program Files','Git/cmd'), process.env.PATH || ''].join(path.delimiter);
@@ -65,7 +104,7 @@ async function start() {
     {label:'Bearbeiten',submenu:[{role:'undo',label:'Rückgängig'},{role:'redo',label:'Wiederholen'},{type:'separator'},{role:'cut',label:'Ausschneiden'},{role:'copy',label:'Kopieren'},{role:'paste',label:'Einfügen'},{role:'selectAll',label:'Alles auswählen'}]},
     {label:'Ansicht',submenu:[{role:'resetZoom',label:'Originalgröße'},{role:'zoomIn',label:'Vergrößern'},{role:'zoomOut',label:'Verkleinern'},{type:'separator'},{role:'togglefullscreen',label:'Vollbild'}]},
     {label:'Werkzeuge',submenu:[{label:'TeX-Programmordner auswählen …',click:guarded(chooseTools)}]},
-    {label:'Hilfe',submenu:[{label:'Über SchriftenMinisterium',click:()=>dialog.showMessageBox(window,{type:'info',message:`SchriftenMinisterium ${app.getVersion()}`,detail:'Dein Arbeitsplatz für schriftliche Dokumentationi\n\nLokale Desktop-Anwendung.\nProjekte: '+dataRoot})}]}
+    {label:'Hilfe',submenu:[{label:'Nach Updates suchen …',click:guarded(updateApplication)},{type:'separator'},{label:'Über SchriftenMinisterium',click:()=>dialog.showMessageBox(window,{type:'info',message:`SchriftenMinisterium ${app.getVersion()}`,detail:'Dein Arbeitsplatz für schriftliche Dokumentationi\n\nLokale Desktop-Anwendung.\nProjekte: '+dataRoot})}]}
   ]));
   window.once('ready-to-show',()=>window.show());
   await window.loadURL(baseUrl+'/#/projects');

@@ -57,6 +57,22 @@ test('tags, favorites and archive persist without changing document freshness', 
   assert.deepEqual((await request(route())).data.tags, []); assert.equal((await request('/api/tags')).data.length, 0);
   await request(route(), 'PATCH', { starred: false, archived: false });
 });
+test('sharing drafts persist privately without granting access or changing document freshness', async () => {
+  const before=(await request(route())).data.sourceUpdated;
+  assert.deepEqual((await request(route('/sharing'))).data,{serverConnected:false,invitations:[]});
+  for (const body of [{email:'invalid',role:'reader'},{email:'friend@example.org',role:'owner'},{email:'friend@example.org',role:'editor',status:'active'}]) assert.equal((await request(route('/sharing/invitations'),'POST',body)).status,400);
+  const created=await request(route('/sharing/invitations'),'POST',{email:'Friend@Example.org',name:'Alex',role:'editor'});
+  assert.equal(created.status,201);const invitation=created.data.invitations[0];assert.equal(invitation.email,'friend@example.org');assert.equal(invitation.status,'planned');
+  assert.equal((await request(route('/sharing/invitations'),'POST',{email:'FRIEND@example.org',role:'reader'})).status,409);
+  const edited=await request(route(`/sharing/invitations/${invitation.id}`),'PATCH',{role:'reader'});assert.equal(edited.data.invitations[0].role,'reader');
+  const stored=JSON.parse(await fs.readFile(path.join(dataRoot,project.id,'sharing.json'),'utf8'));assert.equal(stored.invitations[0].role,'reader');
+  assert.equal((await request(route())).data.sourceUpdated,before);
+  const archive=readZip(Buffer.from(await (await fetch(base+route('/export'),{headers})).arrayBuffer()));
+  assert.ok(!archive.some(file=>file.name==='sharing.json'));assert.ok(!archive.some(file=>file.data.includes(Buffer.from('friend@example.org'))));
+  assert.equal((await request(route(`/sharing/invitations/${invitation.id}`),'DELETE')).data.invitations.length,0);
+  assert.equal((await request(route(`/sharing/invitations/${invitation.id}`),'DELETE')).status,404);
+});
+
 test('Overleaf ZIP imports nested files and detects sample.tex rather than the first chapter', async () => {
   const archive = zip([
     { name: 'HAW/chapters/first.tex', data: Buffer.from('\\section{First chapter}') },

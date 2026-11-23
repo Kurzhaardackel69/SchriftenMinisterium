@@ -131,6 +131,7 @@ export class ProjectLibrary {
     const selected = this.tagChecklist(body, project.tags);
     body.append(this.el('p', 'empty-note', 'Archivieren bewahrt alle Dateien auf. Du findest das Projekt weiterhin im Archiv und kannst es dort wiederherstellen.'));
     this.modalButton('ZIP herunterladen', () => { window.location.href = `/api/projects/${project.id}/export`; }, 'secondary-button');
+    this.modalButton('Teilen …', () => this.showSharing(project), 'secondary-button');
     this.cancelButton(); this.modalButton('Speichern', async () => { await this.api(`/api/projects/${project.id}`, 'PATCH', { name: name.input.value, tags: selected(), starred: star.checked, archived: archive.checked }); $('modal').close(); await this.refresh(); this.toast('Projekt aktualisiert.'); });
   }
   renderTemplates() {

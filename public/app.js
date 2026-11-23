@@ -235,6 +235,41 @@ function modalButton(text, action, cls = 'primary-button') {
 }
 function cancelButton() { modalButton('Abbrechen', () => $('modal').close(), 'secondary-button'); }
 
+async function showSharing(project = state.project) {
+  await flush();
+  const url = `/api/projects/${project.id}/sharing`;
+  const sharing = await api(url);
+  const body = showModal('Teile deine Gedanken.', 'PROJEKT TEILEN', true);
+  body.append(el('p', 'share-project-title', project.name));
+  const banner = el('div', 'sharing-status'); banner.append(icon('share'));
+  const explanation = el('div'); explanation.append(el('strong', '', 'Server noch nicht verbunden'), el('p', '', 'Merke Einladungen für später vor. Es werden noch keine E-Mails oder Links versendet und keine Zugriffsrechte erteilt. Gemeinsames Bearbeiten wird mit der Server-Verbindung eingerichtet.')); banner.append(explanation); body.append(banner);
+  const heading = el('div', 'sharing-list-heading'); heading.append(el('h3', '', 'Vorgemerkte Einladungen'), el('span', '', String(sharing.invitations.length))); body.append(heading);
+  const list = el('div', 'sharing-list');
+  for (const invitation of sharing.invitations) {
+    const row = el('div', 'sharing-person'), avatar = el('span', 'sharing-avatar', (invitation.name || invitation.email).slice(0, 1).toLocaleUpperCase('de'));
+    const details = el('div', 'sharing-person-details'); details.append(el('strong', '', invitation.name || invitation.email));
+    if (invitation.name) details.append(el('span', '', invitation.email));
+    details.append(el('small', '', 'Vorgemerkt · noch nicht versendet'));
+    const role = el('select'); role.setAttribute('aria-label', `Vorgesehene Rechte für ${invitation.email}`);
+    for (const [value, text] of [['reader', 'Lesen'], ['editor', 'Bearbeiten']]) { const option = el('option', '', text); option.value = value; option.selected = value === invitation.role; role.append(option); }
+    role.onchange = safeAction(async () => { role.disabled = true; try { await api(`${url}/invitations/${invitation.id}`, 'PATCH', { role: role.value }); } catch (error) { role.value = invitation.role; throw error; } finally { role.disabled = false; } });
+    const remove = el('button', 'icon-button'); remove.append(icon('close')); remove.title = 'Vormerkung entfernen'; remove.setAttribute('aria-label', `Vormerkung für ${invitation.email} entfernen`);
+    remove.onclick = safeAction(async () => { await api(`${url}/invitations/${invitation.id}`, 'DELETE'); await showSharing(project); });
+    row.append(avatar, details, role, remove); list.append(row);
+  }
+  if (!sharing.invitations.length) list.append(el('p', 'empty-note', 'Noch keine Personen vorgemerkt. Deine Projekte bleiben privat auf deinem PC.'));
+  body.append(list, el('h3', 'sharing-form-heading', 'Person für später vormerken'));
+  const form = el('div', 'sharing-form'), name = field('Name (optional)', 'z. B. Alex'), email = field('E-Mail-Adresse', 'name@beispiel.de', '', 'email');
+  name.input.maxLength = 100; email.input.maxLength = 254; form.append(name.wrapper, email.wrapper);
+  const rights = el('label', 'field'), role = el('select'); rights.append(el('span', 'field-label', 'Vorgesehene Rechte'), role);
+  for (const [value, label] of [['editor', 'Bearbeiten'], ['reader', 'Lesen']]) { const option = el('option', '', label); option.value = value; role.append(option); }
+  form.append(rights); body.append(form);
+  body.append(el('p', 'empty-note', 'Jetzt als ZIP teilen: Die empfangende Person importiert eine eigene Kopie. Änderungen werden dabei nicht synchronisiert. Die Vormerkliste und dein Git-Verlauf werden nicht mitgegeben.'));
+  modalButton('Projekt-ZIP herunterladen', async () => { await flush(); window.location.href = `/api/projects/${project.id}/export`; }, 'secondary-button');
+  modalButton('Schließen', () => $('modal').close(), 'secondary-button');
+  modalButton('Einladung vormerken', async () => { await api(`${url}/invitations`, 'POST', { name: name.input.value, email: email.input.value, role: role.value }); await showSharing(project); });
+}
+
 async function showProjects() {
   closeProjectMenu();
   await flush(); clearTimeout(autoTimer);
@@ -424,7 +459,7 @@ function showHelp() {
   body.append(el('p', '', 'Dein Arbeitsplatz für schriftliche Dokumentationi läuft auf deinem PC. Änderungen werden automatisch gespeichert. Kompiliere die Hauptdatei, um das PDF rechts zu aktualisieren.'));
   const table = el('table', 'help-table');
   for (const [label, shortcut] of [['Speichern', 'Strg + S'], ['PDF kompilieren', 'Strg + Enter'], ['Im Dokument suchen', 'Strg + F'], ['Einrücken', 'Tab'], ['Kommentar umschalten', 'Strg + /']]) { const row = el('tr'); row.append(el('td', '', label), el('td', '', shortcut)); table.append(row); } body.append(table);
-  body.append(el('div', 'info-box', 'Dateien: data/<Projekt-ID>/files\nPDFs und Protokolle: data/<Projekt-ID>/build\nSichere regelmäßig den gesamten data-Ordner oder nutze GitHub.\n\nDies ist ein lokaler Einzelbenutzer-Arbeitsplatz. Zusammenarbeit mit Freunden über einen Server ist ein späterer Ausbauschritt.'));
+  body.append(el('div', 'info-box', 'Desktop: Datei → Datenordner öffnen zeigt deine Projekte. Sichere diesen Ordner regelmäßig.\n\nUpdates: Hilfe → Nach Updates suchen lädt neue Desktop-Versionen. Projekte und Einstellungen bleiben erhalten.\n\nTeilen: Gib eine Projektkopie als ZIP weiter oder merke Personen und ihre vorgesehenen Rechte vor. Einladungen und gemeinsames Bearbeiten werden mit der späteren Server-Verbindung aktiviert.'));
   modalButton('Los geht’s', () => $('modal').close());
 }
 
@@ -481,6 +516,7 @@ on('find-next', () => find(true)); on('find-close', () => { $('find-bar').hidden
 on('nav-search', showFind); on('project-switch', showProjectMenu); on('new-file', newFile); on('upload-file', () => $('file-input').click());
 on('back-projects', showProjects);
 on('github-button', showGit); on('nav-git', showGit); on('sidebar-git', showGit); on('nav-settings', settings); on('nav-help', showHelp);
+on('share-project', () => showSharing());
 on('nav-files', () => { document.querySelector('.workspace').classList.remove('show-preview'); if (window.innerWidth <= 680) document.querySelector('.workspace').classList.toggle('show-files'); });
 on('compile-button', compile); on('first-compile', compile); on('modal-close', () => $('modal').close());
 on('download-pdf', () => { window.location.href = endpoint('/pdf?download=1'); });
@@ -541,7 +577,12 @@ $('editor-layout').addEventListener('change', () => {
   workspace.classList.toggle('show-preview', value === 'pdf');
 });
 
-const library = new ProjectLibrary({ api, el, icon, toast, showModal, field, modalButton, cancelButton, showHelp, newProject, importProject, openProject: enterProject });
+const library = new ProjectLibrary({ api, el, icon, toast, showModal, field, modalButton, cancelButton, showHelp, showSharing, newProject, importProject, openProject: enterProject });
+window.prepareDesktopUpdate = async () => {
+  if (state.compiling || navigating) return false;
+  clearTimeout(autoTimer); await flush();
+  return state.pending.size === 0 && !state.compiling;
+};
 async function route() {
   const match = location.hash.match(/^#\/project\/([a-f0-9-]{36})$/);
   if (match) {

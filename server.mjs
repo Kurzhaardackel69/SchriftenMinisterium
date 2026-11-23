@@ -7,6 +7,7 @@ import { AppError, safePath, listFiles, isText, zip, readZip, excluded } from '.
 import { run, git, githubUrl } from './lib/process.mjs';
 import { templates, gitignore } from './lib/templates.mjs';
 import { compileDocument, compilerNames, compilerStatus } from './lib/compiler.mjs';
+import { readSharing, editInvitation } from './lib/sharing.mjs';
 
 const publicDir = path.join(import.meta.dirname, 'public');
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.pdf': 'application/pdf', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
@@ -238,6 +239,14 @@ export async function createApp({ dataRoot = process.env.SCHRIFTENMINISTERIUM_DA
       }
       const id = parts[2], root = path.join(location(id), 'files'), action = parts[3];
       let project = await meta(id);
+      if (action === 'sharing') {
+        if (parts.length === 4 && req.method === 'GET') return sendJSON(res, 200, await readSharing(location(id)));
+        const invitationId = parts[5];
+        if (parts[4] !== 'invitations' || !((req.method === 'POST' && parts.length === 5) || (['PATCH', 'DELETE'].includes(req.method) && parts.length === 6))) throw new AppError('Methode nicht erlaubt.', 405);
+        const body = req.method === 'DELETE' ? {} : await readBody(req);
+        const sharing = await locked(id, () => editInvitation(location(id), req.method, invitationId, body));
+        return sendJSON(res, req.method === 'POST' ? 201 : 200, sharing);
+      }
       if (!action && req.method === 'GET') {
         const result = await fs.readFile(path.join(location(id), 'build/result.json'), 'utf8').then(JSON.parse).catch(() => null);
         return sendJSON(res, 200, { ...project, files: await listFiles(root), result, hasPdf: await exists(path.join(location(id), 'build/document.pdf')) });
