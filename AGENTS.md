@@ -11,3 +11,4 @@
 - Desktop-Versionen mit unveränderter appId veröffentlichen. Das native Update-Menü beibehalten; Installer-Name und Release-Tag müssen zur Paketversion passen. Projekte und Einstellungen beim Update erhalten. Prüfsumme vor Ausführung prüfen.
 - Zusammenarbeit wird später über einen Server verbunden. Lokale Vormerkungen sind noch keine versendeten Einladungen und erteilen keine Rechte. Keine Server-Verbindung oder E-Mail-Zustellung vortäuschen.
 - Der Formeldialog ist eine Eingabehilfe. Nur die gewählte Stelle nach Bestätigung in gewöhnlichen TeX-Code umwandeln; bestehende Dokumente und ihre Sprache nicht automatisch verändern.
+- Tabellen- und Bilddialoge erzeugen ebenfalls gewöhnlichen TeX-Code. Bilder erst nach Bestätigung kopieren; vorhandene Dateien nicht überschreiben. Eine automatische graphicx-Ergänzung muss im Dialog sichtbar und abwählbar sein.

@@ -6,7 +6,7 @@ Eine lokale Anwendung zum Organisieren, Schreiben und Erstellen von PDF-Dokument
 
 ## Windows installieren
 
-Die fertige Desktop-Ausgabe liegt unter **release/SchriftenMinisterium-Setup-0.4.0-x64.exe** und als Download in den [GitHub Releases](https://github.com/Kurzhaardackel69/SchriftenMinisterium/releases). Der Installer richtet die Anwendung für das aktuelle Windows-Konto ein und bietet Desktop- und Startmenü-Verknüpfungen an. Die Anwendung hat ein eigenes Fenster; ein Browser oder ein separates Serverfenster ist für die Benutzung nicht erforderlich. Die Programmdatei ist derzeit nicht mit einem kommerziellen Code-Signing-Zertifikat signiert.
+Die fertige Desktop-Ausgabe liegt unter **release/SchriftenMinisterium-Setup-0.5.0-x64.exe** und als Download in den [GitHub Releases](https://github.com/Kurzhaardackel69/SchriftenMinisterium/releases). Der Installer richtet die Anwendung für das aktuelle Windows-Konto ein und bietet Desktop- und Startmenü-Verknüpfungen an. Die Anwendung hat ein eigenes Fenster; ein Browser oder ein separates Serverfenster ist für die Benutzung nicht erforderlich. Die Programmdatei ist derzeit nicht mit einem kommerziellen Code-Signing-Zertifikat signiert.
 
 Node.js und der Standard-PDF-Compiler sind im Desktop-Paket enthalten. Git bleibt optional und wird für die GitHub-Funktionen separat benötigt. Der Datenordner liegt bei der installierten Anwendung unter **%APPDATA%/SchriftenMinisterium/projects**; er bleibt bei der Deinstallation erhalten.
 
@@ -79,6 +79,26 @@ Unterstützt werden außerdem Betrag, Logarithmus, Exponentialfunktion, Minimum/
 Wählbar sind Formel im Fließtext, eigene Zeile, Gleichungsnummer oder reiner Formelinhalt. Innerhalb üblicher vorhandener Formelumgebungen wird reiner Inhalt vorgeschlagen, damit keine verschachtelten Mathematik-Begrenzer entstehen. **TeX-Eingabe** übernimmt direkt eingegebenen TeX-Code unverändert; bei dieser Eingabeart wird der Code vor dem Einfügen und die gesetzte Formel nach dem Kompilieren im PDF gezeigt. Ausgewählte übliche Formelbegrenzer werden beim Öffnen des Dialogs erkannt.
 
 Die Eingabehilfe speichert gewöhnliche TeX-Befehle wie **\\frac**, **\\sqrt** und **\\sum**. Sie benötigt weder ein proprietäres Dokumentformat noch ein eigenes Formelpaket. Importierte TeX-Dokumente werden nicht automatisch konvertiert. Vorschau und Übersetzung laufen lokal ohne zusätzliche Online-Dienste. Grenzen: 4096 Zeichen und begrenzte Verschachtelung pro Eingabe.
+
+## Tabellen einfügen
+
+Rechtsklick in den Dokumenttext → **Tabelle einfügen**, alternativ das Tabellen-Symbol neben **∑**. Im Raster Zellen bearbeiten, Zeilen und Spalten festlegen und die Ausrichtung je Spalte wählen. Erste Zeile als Überschrift sowie schlichte Linien, vollständiges Raster oder keine Linien stehen zur Auswahl.
+
+Ein aus Excel oder Calc kopierter Bereich lässt sich in die gewünschte Zelle einfügen. Die Anwendung übernimmt Tabulatoren, Zeilenumbrüche und übliche in Anführungszeichen eingeschlossene Zellen. Das Raster wächst bei Bedarf. Grenzen: 50 Zeilen, 12 Spalten, 500 Zeichen je Zelle. Die Werte werden als Text übernommen und TeX-Sonderzeichen sicher maskiert; es werden keine Tabellenformeln berechnet.
+
+Standardmäßig entsteht eine Tabelle direkt im Text. Für eine nummerierte Tabelle **Nummerierte Tabelle** wählen und eine Beschriftung eingeben; optional einen Verweis wie **tab:messung** ergänzen. Nummerierte Tabellen sind Gleitobjekte und können vom Compiler auf eine andere Seite platziert werden. Der erzeugte **tabular**-Code benötigt kein zusätzliches Tabellenpaket. Sehr breite oder hohe Tabellen können über die Seite hinausragen; der Dialog ist für normale Tabellen gedacht, nicht für automatisch umbrechende mehrseitige Tabellen.
+
+## Bilder einfügen
+
+Rechtsklick in den Dokumenttext → **Bild einfügen**, alternativ das Bild-Symbol in der Werkzeugleiste. Ein neues **PNG/JPEG** auswählen oder ein bereits im Projekt vorhandenes Bild wiederverwenden. Vorschau, Breite in Prozent der Textbreite, Beschriftung und direkte oder nummerierte Darstellung lassen sich festlegen. Bilder bleiben proportional skaliert.
+
+Neue Bilder werden erst beim Bestätigen unter einem eindeutigen Namen in **images/** gespeichert; die Originaldatei bleibt erhalten. Vorhandene Projektdateien werden nicht überschrieben. Der TeX-Vorschau dient bei neuen Dateien ein Platzhalter, bis der endgültige Dateiname feststeht. Grenzen: 10 MB, 40 Megapixel und 16000 Pixel je Seite.
+
+Die sichtbare Option **Paket graphicx bei Bedarf in der Hauptdatei ergänzen** ist standardmäßig aktiv. Bei Bestätigung wird die Paketzeile nötigenfalls vor dem Dokumentbeginn ergänzt; auch bei geöffneten Kapiteldateien wird dafür die tatsächliche Hauptdatei verwendet. Wer graphicx bereits über eine eigene Klasse oder Konfiguration lädt, kann die Option abschalten. Der Bilddialog prüft, ob der Quelltext zwischenzeitlich geändert wurde, bevor Dateien geschrieben werden.
+
+![Bilddialog mit Vorschau, Größenangabe und optionaler graphicx-Ergänzung](docs/bilder.png)
+
+Beide Dialoge erzeugen gewöhnlichen TeX-Code und verändern beim Abbrechen keine Quelldateien. Bei Bildern werden nur die Bilddatei, die bestätigte Einfügestelle und gegebenenfalls die sichtbare Paketergänzung geschrieben. Verweise in nummerierten Tabellen und Bildern benötigen eine Beschriftung. Die Inhalte lassen sich anschließend normal im Quelltext weiterbearbeiten.
 
 ## Warum der erste Satzlauf länger dauert
 

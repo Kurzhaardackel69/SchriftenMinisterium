@@ -8,6 +8,7 @@ import { run, git, githubUrl } from './lib/process.mjs';
 import { templates, gitignore } from './lib/templates.mjs';
 import { compileDocument, compilerNames, compilerStatus } from './lib/compiler.mjs';
 import { readSharing, editInvitation } from './lib/sharing.mjs';
+import {insertImage} from './lib/image-insert.mjs';
 
 const publicDir = path.join(import.meta.dirname, 'public');
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.wasm': 'application/wasm', '.svg': 'image/svg+xml', '.pdf': 'application/pdf', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
@@ -206,7 +207,7 @@ export async function createApp({ dataRoot = process.env.SCHRIFTENMINISTERIUM_DA
       if (parts[0] !== 'api') {
         if (req.method !== 'GET') throw new AppError('Methode nicht erlaubt.', 405);
         if (url.pathname.startsWith('/vendor/pdfjs/')) return await sendFile(res, await safePath(publicDir, decodeURIComponent(url.pathname.slice(1))));
-        if (!['/', '/index.html', '/app.js', '/library.js', '/formula.js', '/formula-dialog.js', '/pdf-viewer.js', '/style.css', '/library.css', '/workspace.css', '/icon.svg'].includes(url.pathname)) throw new AppError('Nicht gefunden.', 404);
+        if (!['/', '/index.html', '/app.js', '/library.js', '/formula.js', '/formula-dialog.js', '/insertions.js', '/insertion-dialogs.js', '/pdf-viewer.js', '/style.css', '/library.css', '/workspace.css', '/icon.svg'].includes(url.pathname)) throw new AppError('Nicht gefunden.', 404);
         return await sendFile(res, path.join(publicDir, url.pathname === '/' ? 'index.html' : url.pathname.slice(1)));
       }
       if (req.headers['x-schriftenministerium-request'] !== '1' && req.headers['x-satzwerk-request'] !== '1' && !['pdf', 'export', 'asset'].includes(parts[3])) throw new AppError('Ungültige Anfrage.', 403);
@@ -275,6 +276,10 @@ export async function createApp({ dataRoot = process.env.SCHRIFTENMINISTERIUM_DA
       const body = req.method === 'DELETE' ? {} : await readBody(req);
       const result = await locked(id, async () => {
         project = await meta(id);
+        if(action==='insert-image'&&req.method==='POST'){
+          const inserted=await insertImage({projectDirectory:location(id),root,project,body});
+          project.updated=project.sourceUpdated=new Date().toISOString();await writeMeta(project);return inserted;
+        }
         if (!action && req.method === 'PATCH') {
           const current = await meta(id);
           const changedMain = body.main !== undefined && body.main !== current.main;

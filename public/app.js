@@ -1,5 +1,6 @@
 import { ProjectLibrary } from './library.js';
 import { installFormulaDialog } from './formula-dialog.js';
+import {installInsertionDialogs} from './insertion-dialogs.js';
 
 const $ = id => document.getElementById(id);
 const state = { view: 'projects', projects: [], project: null, file: null, tabs: [], collapsed: new Set(), pending: new Map(), saving: null, compiling: false, revision: 0, lastResult: null, auto: localStorage.getItem('satzwerk-auto') === 'true' };
@@ -469,6 +470,7 @@ function showHelp() {
   const body = showModal('Weniger klicken. Mehr schreiben.', 'WILLKOMMEN IM SCHRIFTENMINISTERIUM');
   body.append(el('p', '', 'Dein Arbeitsplatz für schriftliche Dokumentationi läuft auf deinem PC. Änderungen werden automatisch gespeichert. Kompiliere die Hauptdatei, um das PDF rechts zu aktualisieren.'));
   body.append(el('p', '', 'Formeln: Rechtsklick an die gewünschte Stelle im Quelltext → Formel einfügen. Alternativ ∑ in der Werkzeugleiste verwenden. Eingaben wie (a+b)/c oder WURZEL(x) werden vor dem Einfügen als Vorschau und TeX-Code angezeigt.'));
+  body.append(el('p', '', 'Tabellen und Bilder: über Rechtsklick oder die Symbole neben ∑. Tabellen direkt im Raster bearbeiten oder aus Excel/Calc einfügen. Bilder als PNG/JPEG auswählen und Breite sowie Beschriftung festlegen.'));
   const table = el('table', 'help-table');
   for (const [label, shortcut] of [['Speichern', 'Strg + S'], ['PDF kompilieren', 'Strg + Enter'], ['Im Dokument suchen', 'Strg + F'], ['Einrücken', 'Tab'], ['Kommentar umschalten', 'Strg + /']]) { const row = el('tr'); row.append(el('td', '', label), el('td', '', shortcut)); table.append(row); } body.append(table);
   body.append(el('div', 'info-box', 'Desktop: Datei → Datenordner öffnen zeigt deine Projekte. Sichere diesen Ordner regelmäßig.\n\nUpdates: Hilfe → Nach Updates suchen lädt neue Desktop-Versionen. Projekte und Einstellungen bleiben erhalten.\n\nTeilen: Gib eine Projektkopie als ZIP weiter oder merke Personen und ihre vorgesehenen Rechte vor. Einladungen und gemeinsames Bearbeiten werden mit der späteren Server-Verbindung aktiviert.'));
@@ -580,8 +582,16 @@ for (const [id, type, vertical] of [['sidebar-splitter','sidebar',true],['splitt
 new MutationObserver(() => { $('log-splitter').hidden = $('log-panel').hidden; }).observe($('log-panel'), { attributes:true, attributeFilter:['hidden'] });
 
 for (const [id, command] of [['tool-undo', 'undo'], ['tool-redo', 'redo']]) on(id, () => { if (!$('editor').disabled) { $('editor').focus(); document.execCommand(command); } });
-const openFormula = installFormulaDialog({el,icon,showModal,modalButton,toast,insert:insertText,getContext:()=>({project:state.project?.id,file:state.file,editable:!$('editor').disabled&&!!state.file?.endsWith('.tex')})});
+const insertionContext=()=>({project:state.project?.id,file:state.file,main:state.project?.main,files:state.project?.files||[],editable:!$('editor').disabled&&!!state.file?.endsWith('.tex')});
+const insertionDialogs=installInsertionDialogs({el,icon,showModal,modalButton,field,toast,api,flush,insert:insertText,getContext:insertionContext,applyImage:async(result,saved)=>{
+  const scroll=$('editor').scrollTop;insertText(result.content,0,$('editor').value.length);
+  const block=result.edits.find(edit=>edit.start===saved.start&&edit.end===saved.end),shift=result.edits.filter(edit=>edit!==block&&edit.start<=saved.start).reduce((sum,edit)=>sum+edit.text.length-(edit.end-edit.start),0);
+  const caret=saved.start+shift+(block?.text.length||0);$('editor').setSelectionRange(caret,caret);$('editor').scrollTop=scroll;syncScroll();updateCursor();
+  clearTimeout(saveTimer);state.pending.delete(`${saved.project}/${saved.file}`);$('dirty-dot').hidden=true;statusSave('Alle Änderungen gespeichert');await refreshProject();toast(result.mainUpdated?'Bild eingefügt; graphicx in der Hauptdatei ergänzt.':'Bild eingefügt.');
+}});
+const openFormula = installFormulaDialog({el,icon,showModal,modalButton,toast,insert:insertText,getContext:insertionContext,extraActions:[{label:'Tabelle einfügen …',icon:'grid',open:insertionDialogs.table},{label:'Bild einfügen …',icon:'image',open:insertionDialogs.image}]});
 on('tool-math',openFormula);
+on('tool-table',()=>insertionDialogs.table());on('tool-image',()=>insertionDialogs.image());
 for (const [id, before, fallback, after] of [['tool-bold', '\\textbf{', 'Text', '}'], ['tool-italic', '\\textit{', 'Text', '}'], ['tool-section', '\\section{', 'Abschnitt', '}'], ['tool-cite', '\\cite{', 'quelle', '}']]) on(id, () => {
   const editor = $('editor'); if (editor.disabled) return; const start = editor.selectionStart, selected = editor.value.slice(start, editor.selectionEnd) || fallback;
   insertText(before + selected + after); editor.setSelectionRange(start + before.length, start + before.length + selected.length); updateCursor();

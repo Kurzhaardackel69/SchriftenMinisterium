@@ -20,10 +20,11 @@ function positionAtPoint(editor, x, y) {
 }
 export function installFormulaDialog(ui) {
   const {el,icon,showModal,modalButton,getContext,insert,toast}=ui,editor=document.getElementById('editor');
-  const menu=el('div','formula-context-menu');menu.setAttribute('role','menu');menu.setAttribute('aria-label','Formel einfügen');menu.hidden=true;
+  const menu=el('div','formula-context-menu');menu.setAttribute('role','menu');menu.setAttribute('aria-label','Einfügen');menu.hidden=true;
   const action=el('button');action.setAttribute('role','menuitem');action.append(icon('math'),el('span','','Formel einfügen …'));menu.append(action);document.body.append(menu);
   let anchor;
   const hide=()=>{menu.hidden=true;};
+  for(const item of ui.extraActions||[]){const button=el('button');button.setAttribute('role','menuitem');button.append(icon(item.icon),el('span','',item.label));button.onclick=()=>{hide();item.open(anchor);};menu.append(button);}
   function capture(){const context=getContext();return {...context,start:editor.selectionStart,end:editor.selectionEnd,source:editor.value};}
   function open(saved=capture()){
     hide();if(!saved?.editable)return;
@@ -76,7 +77,7 @@ export function installFormulaDialog(ui) {
     menu.style.left=Math.max(8,Math.min(x,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(y,innerHeight-menu.offsetHeight-8))+'px';action.focus();
   });
   action.onclick=()=>open(anchor);
-  menu.onkeydown=event=>{if(event.key==='Escape'){hide();editor.focus();}else if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();action.focus();}};
+  menu.onkeydown=event=>{if(event.key==='Escape'){hide();editor.focus();}else if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();const buttons=[...menu.querySelectorAll('button')],index=buttons.indexOf(document.activeElement);buttons[(index+(event.key==='ArrowDown'?1:buttons.length-1))%buttons.length].focus();}};
   document.addEventListener('pointerdown',event=>{if(!menu.contains(event.target))hide();});window.addEventListener('resize',hide);editor.addEventListener('scroll',hide);
   return ()=>open(capture());
 }
