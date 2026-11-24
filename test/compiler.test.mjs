@@ -43,3 +43,11 @@ test('failed engine stops before auxiliary tools and preserves the original diag
   const result=await compileDocument({project:{compiler:'lualatex',main:'paper.tex'},...f,dataRoot:f.root,config:{toolsDirectory:f.bin},runProcess:async()=>{calls++;return {code:1,output:'Missing custom-class.cls'};}});
   assert.equal(result.code,1);assert.equal(calls,1);assert.match(result.output,/Missing custom-class/);
 }));
+test('compiler output reports package downloads, format preparation and PDF phases',()=>fixture(async f=>{
+  await f.tool('tectonic');const phases=[];
+  await compileDocument({project:{compiler:'tectonic',main:'main.tex'},...f,dataRoot:f.root,config:{toolsDirectory:f.bin},onProgress:phase=>phases.push(phase),runProcess:async(_command,_args,options)=>{
+    for(const chunk of ['note: down','loading package.sty\n','note: generating format latex\n','note: Running TeX ...\n','note: Running xdvipdfmx ...\n'])options.onOutput(chunk);
+    return {code:0,output:''};
+  }});
+  assert.ok(phases.includes('download'));assert.ok(phases.includes('format'));assert.ok(phases.includes('typeset'));assert.equal(phases.at(-1),'pdf');
+}));

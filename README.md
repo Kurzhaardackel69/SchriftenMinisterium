@@ -6,7 +6,7 @@ Eine lokale Anwendung zum Organisieren, Schreiben und Erstellen von PDF-Dokument
 
 ## Windows installieren
 
-Die fertige Desktop-Ausgabe liegt unter **release/SchriftenMinisterium-Setup-0.3.1-x64.exe** und als Download in den [GitHub Releases](https://github.com/Kurzhaardackel69/SchriftenMinisterium/releases). Der Installer richtet die Anwendung für das aktuelle Windows-Konto ein und bietet Desktop- und Startmenü-Verknüpfungen an. Die Anwendung hat ein eigenes Fenster; ein Browser oder ein separates Serverfenster ist für die Benutzung nicht erforderlich. Die Programmdatei ist derzeit nicht mit einem kommerziellen Code-Signing-Zertifikat signiert.
+Die fertige Desktop-Ausgabe liegt unter **release/SchriftenMinisterium-Setup-0.4.0-x64.exe** und als Download in den [GitHub Releases](https://github.com/Kurzhaardackel69/SchriftenMinisterium/releases). Der Installer richtet die Anwendung für das aktuelle Windows-Konto ein und bietet Desktop- und Startmenü-Verknüpfungen an. Die Anwendung hat ein eigenes Fenster; ein Browser oder ein separates Serverfenster ist für die Benutzung nicht erforderlich. Die Programmdatei ist derzeit nicht mit einem kommerziellen Code-Signing-Zertifikat signiert.
 
 Node.js und der Standard-PDF-Compiler sind im Desktop-Paket enthalten. Git bleibt optional und wird für die GitHub-Funktionen separat benötigt. Der Datenordner liegt bei der installierten Anwendung unter **%APPDATA%/SchriftenMinisterium/projects**; er bleibt bei der Deinstallation erhalten.
 
@@ -55,6 +55,38 @@ Unterstützt werden Quelltextprojekte mit einer `.tex`-Hauptdatei, Literaturdate
 Tags in der Projekttabelle zuweisen und über die Seitenleiste danach filtern. Sterne markieren Favoriten. Im Projektmenü lassen sich Name, Tags, Favoriten und Archivstatus ändern. Über Checkboxen können mehrere Projekte gemeinsam organisiert werden.
 
 Archivierte Projekte bleiben vollständig erhalten. Sie können im Archiv wiederhergestellt werden. Tags und Projektorganisation liegen im lokalen Datenordner und werden nicht in das Git-Repository des Dokuments geschrieben.
+
+## Formeln einfacher eingeben
+
+In einer bearbeitbaren **.tex-Datei** an der gewünschten Stelle rechtsklicken und **Formel einfügen** wählen. Alternativ öffnet **∑** in der Werkzeugleiste den Dialog an der aktuellen Auswahl. Der Dialog zeigt eine mathematische Vorschau und den exakt einzufügenden TeX-Code. Erst **Formel einfügen** ersetzt die gewählte Stelle; **Abbrechen** verändert das Dokument nicht.
+
+![Formeldialog mit vereinfachter Eingabe, Vorschau und gewöhnlichem TeX-Code](docs/formeln.png)
+
+| Einfache Eingabe | Bedeutung |
+| --- | --- |
+| `(a+b)/c` | Bruch |
+| `=WURZEL(a^2+b^2)` | Quadratwurzel; führendes `=` ist optional |
+| `BRUCH(a;b)` | Bruch als Funktion |
+| `x_i^2` | Index und Potenz |
+| `SIN(PI()/2)` | Sinus und Kreiszahl |
+| `SUMME(a;b;c)` | Summe einzelner Terme |
+| `MITTELWERT(a;b;c)` | Arithmetischer Mittelwert als Formel |
+| `SIGMA(k^2;k;1;n)` | Summe über k von 1 bis n |
+| `INTEGRAL(f(x);x;0;1)` | Bestimmtes Integral |
+
+Unterstützt werden außerdem Betrag, Logarithmus, Exponentialfunktion, Minimum/Maximum, Vergleiche, wissenschaftliche Zahlenschreibweise sowie die angebotenen griechischen Symbole. Deutsche und englische Funktionsnamen sind möglich, z. B. **WURZEL/SQRT**, **POTENZ/POWER** und **MITTELWERT/AVERAGE**. **Semikolon** trennt Funktionsargumente; sowohl Dezimalkomma als auch Dezimalpunkt sind erlaubt. Die Eingabe beschreibt mathematische Ausdrücke; sie berechnet keine Tabellenzellen und ist keine vollständige Excel-Formelsprache.
+
+Wählbar sind Formel im Fließtext, eigene Zeile, Gleichungsnummer oder reiner Formelinhalt. Innerhalb üblicher vorhandener Formelumgebungen wird reiner Inhalt vorgeschlagen, damit keine verschachtelten Mathematik-Begrenzer entstehen. **TeX-Eingabe** übernimmt direkt eingegebenen TeX-Code unverändert; bei dieser Eingabeart wird der Code vor dem Einfügen und die gesetzte Formel nach dem Kompilieren im PDF gezeigt. Ausgewählte übliche Formelbegrenzer werden beim Öffnen des Dialogs erkannt.
+
+Die Eingabehilfe speichert gewöhnliche TeX-Befehle wie **\\frac**, **\\sqrt** und **\\sum**. Sie benötigt weder ein proprietäres Dokumentformat noch ein eigenes Formelpaket. Importierte TeX-Dokumente werden nicht automatisch konvertiert. Vorschau und Übersetzung laufen lokal ohne zusätzliche Online-Dienste. Grenzen: 4096 Zeichen und begrenzte Verschachtelung pro Eingabe.
+
+## Warum der erste Satzlauf länger dauert
+
+Der mitgelieferte Standard-Compiler lädt beim ersten Einsatz benötigte Hilfsdateien und erzeugt sein Grundformat. Nachfolgende Durchläufe verwenden den dauerhaften Cache unter **projects/tex-cache** im Datenordner. Neue Pakete einer anderen Vorlage können weitere Downloads auslösen. Das entspricht dem dokumentierten Verhalten von [Tectonic beim ersten Dokument](https://tectonic-typesetting.github.io/book/latest/getting-started/first-document.html).
+
+Mehr CPU-Leistung beschleunigt keine Paketdownloads. Eine schnellere CPU oder SSD kann beim eigentlichen Satz großer Dokumente helfen; zusätzliche Kerne beseitigen den erstmaligen Download nicht. Die Anwendung setzt keine zusätzliche CPU-Drosselung. Eine bereits eingerichtete vollständige TeX-Distribution ist ebenfalls über die Projekteinstellungen nutzbar.
+
+Während der Kompilierung zeigt die Oberfläche jetzt gemeldete Phasen wie Paketdownload, Vorbereitung des Grundsystems, Satz, Literaturverzeichnis und PDF-Erzeugung. Die Meldungen stammen aus dem laufenden Compilerprozess; die Anzeige verkürzt den eigentlichen Download nicht. Updates und die Bereinigung von Bauwerkzeugen löschen den Paketcache deiner Dokumentprojekte nicht.
 
 ## Eigene Vorlagen importieren
 

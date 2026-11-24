@@ -23,6 +23,7 @@ export async function createApp({ dataRoot = process.env.SCHRIFTENMINISTERIUM_DA
   const runtimePath = path.join(dataRoot, 'settings.json');
   const runtimeConfig = () => fs.readFile(runtimePath, 'utf8').then(JSON.parse).catch(error => { if (error.code === 'ENOENT') return {}; throw error; });
   const busy = new Set(), compiling = new Set();
+  const compileProgress = new Map();
   const location = id => {
     if (!/^[a-f0-9-]{36}$/.test(id)) throw new AppError('Projekt nicht gefunden.', 404);
     return path.join(dataRoot, id);
@@ -149,6 +150,7 @@ export async function createApp({ dataRoot = process.env.SCHRIFTENMINISTERIUM_DA
   async function compile(id) {
     if (compiling.has(id)) throw new AppError('Die Kompilierung läuft bereits.', 409);
     compiling.add(id);
+    const startedAt=Date.now();compileProgress.set(id,{running:true,phase:'prepare',startedAt});
     const build = path.join(location(id), 'build'), snapshot = path.join(location(id), 'snapshot');
     try {
       let project;
@@ -168,14 +170,14 @@ export async function createApp({ dataRoot = process.env.SCHRIFTENMINISTERIUM_DA
       await fs.mkdir(build, { recursive: true });
       const outputDir = path.join(snapshot, '.schriftenministerium'); await fs.mkdir(outputDir);
       const started = Date.now();
-      const result = await compileDocument({ project, snapshot, outputDir, dataRoot, config: await runtimeConfig() });
+      const result = await compileDocument({ project, snapshot, outputDir, dataRoot, config: await runtimeConfig(), onProgress:phase=>compileProgress.set(id,{running:true,phase,startedAt}) });
       const base = path.basename(project.main, '.tex'), produced = path.join(outputDir, base + '.pdf');
       const ok = result.code === 0 && await exists(produced);
       const details = { ok, log: result.output, duration: Date.now() - started, compiledAt: new Date().toISOString(), sourceUpdated: project.sourceUpdated, main: project.main, compiler: result.engine };
       if (ok) await fs.copyFile(produced, path.join(build, 'document.pdf'));
       await fs.writeFile(path.join(build, 'result.json'), JSON.stringify(details));
       return details;
-    } finally { compiling.delete(id); await fs.rm(snapshot, { recursive: true, force: true }).catch(() => {}); }
+    } finally { compiling.delete(id); compileProgress.delete(id); await fs.rm(snapshot, { recursive: true, force: true }).catch(() => {}); }
   }
 
   const sendJSON = (res, status, value) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
@@ -204,7 +206,7 @@ export async function createApp({ dataRoot = process.env.SCHRIFTENMINISTERIUM_DA
       if (parts[0] !== 'api') {
         if (req.method !== 'GET') throw new AppError('Methode nicht erlaubt.', 405);
         if (url.pathname.startsWith('/vendor/pdfjs/')) return await sendFile(res, await safePath(publicDir, decodeURIComponent(url.pathname.slice(1))));
-        if (!['/', '/index.html', '/app.js', '/library.js', '/pdf-viewer.js', '/style.css', '/library.css', '/workspace.css', '/icon.svg'].includes(url.pathname)) throw new AppError('Nicht gefunden.', 404);
+        if (!['/', '/index.html', '/app.js', '/library.js', '/formula.js', '/formula-dialog.js', '/pdf-viewer.js', '/style.css', '/library.css', '/workspace.css', '/icon.svg'].includes(url.pathname)) throw new AppError('Nicht gefunden.', 404);
         return await sendFile(res, path.join(publicDir, url.pathname === '/' ? 'index.html' : url.pathname.slice(1)));
       }
       if (req.headers['x-schriftenministerium-request'] !== '1' && req.headers['x-satzwerk-request'] !== '1' && !['pdf', 'export', 'asset'].includes(parts[3])) throw new AppError('Ungültige Anfrage.', 403);
@@ -269,6 +271,7 @@ export async function createApp({ dataRoot = process.env.SCHRIFTENMINISTERIUM_DA
       }
       if (action === 'git' && req.method === 'GET') return sendJSON(res, 200, await gitStatus(root));
       if (action === 'compile' && req.method === 'POST') return sendJSON(res, 200, await compile(id));
+      if (action === 'compile-status' && req.method === 'GET') return sendJSON(res,200,compileProgress.get(id)||{running:false});
       const body = req.method === 'DELETE' ? {} : await readBody(req);
       const result = await locked(id, async () => {
         project = await meta(id);

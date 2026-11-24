@@ -1,4 +1,5 @@
 import { ProjectLibrary } from './library.js';
+import { installFormulaDialog } from './formula-dialog.js';
 
 const $ = id => document.getElementById(id);
 const state = { view: 'projects', projects: [], project: null, file: null, tabs: [], collapsed: new Set(), pending: new Map(), saving: null, compiling: false, revision: 0, lastResult: null, auto: localStorage.getItem('satzwerk-auto') === 'true' };
@@ -197,6 +198,15 @@ async function compile() {
   const projectId = state.project.id, revision = state.revision;
   state.compiling = true; $('compile-button').disabled = true; $('compile-button').querySelector('span').textContent = 'Kompiliert…'; $('compile-overlay').hidden = false;
   $('compile-summary').textContent = 'Kompilierung läuft…';
+  $('compile-phase').textContent='Projekt wird vorbereitet…';$('compile-hint').textContent='Beim ersten Lauf können benötigte Pakete heruntergeladen und vorbereitet werden. Der Cache bleibt für weitere Durchläufe erhalten.';
+  let polling=false;
+  const progressTimer=setInterval(async()=>{
+    if(polling)return;polling=true;
+    try{const progress=await api(endpoint('/compile-status',projectId));if(!progress.running||!state.compiling||state.project?.id!==projectId)return;
+      const labels={prepare:'Projekt wird vorbereitet…',download:'Benötigte Pakete werden geladen…',format:'Das Grundsystem wird einmalig vorbereitet…',typeset:'Dein Dokument wird gesetzt…',bibliography:'Literaturverzeichnis wird erstellt…',pdf:'Die PDF-Datei wird erstellt…'};
+      $('compile-phase').textContent=labels[progress.phase]||labels.typeset;
+    }catch{/* Keep the running compile request and its final result authoritative. */}finally{polling=false;}
+  },900);
   try {
     const result = await api(endpoint('/compile', projectId), 'POST', {});
     if (projectId !== state.project.id) return;
@@ -209,6 +219,7 @@ async function compile() {
   } catch (e) {
     $('compile-summary').textContent = 'Kompilierung fehlgeschlagen'; $('log-content').textContent = e.message; $('log-panel').hidden = false; throw e;
   } finally {
+    clearInterval(progressTimer);
     state.compiling = false; $('compile-button').disabled = false; $('compile-button').querySelector('span').textContent = 'Kompilieren'; $('compile-overlay').hidden = true;
     if (state.auto && state.view === 'editor' && revision !== state.revision) { clearTimeout(autoTimer); autoTimer = setTimeout(() => compile().catch(e => toast(e.message, true)), 1200); }
   }
@@ -457,6 +468,7 @@ function connectGit(status = {}) {
 function showHelp() {
   const body = showModal('Weniger klicken. Mehr schreiben.', 'WILLKOMMEN IM SCHRIFTENMINISTERIUM');
   body.append(el('p', '', 'Dein Arbeitsplatz für schriftliche Dokumentationi läuft auf deinem PC. Änderungen werden automatisch gespeichert. Kompiliere die Hauptdatei, um das PDF rechts zu aktualisieren.'));
+  body.append(el('p', '', 'Formeln: Rechtsklick an die gewünschte Stelle im Quelltext → Formel einfügen. Alternativ ∑ in der Werkzeugleiste verwenden. Eingaben wie (a+b)/c oder WURZEL(x) werden vor dem Einfügen als Vorschau und TeX-Code angezeigt.'));
   const table = el('table', 'help-table');
   for (const [label, shortcut] of [['Speichern', 'Strg + S'], ['PDF kompilieren', 'Strg + Enter'], ['Im Dokument suchen', 'Strg + F'], ['Einrücken', 'Tab'], ['Kommentar umschalten', 'Strg + /']]) { const row = el('tr'); row.append(el('td', '', label), el('td', '', shortcut)); table.append(row); } body.append(table);
   body.append(el('div', 'info-box', 'Desktop: Datei → Datenordner öffnen zeigt deine Projekte. Sichere diesen Ordner regelmäßig.\n\nUpdates: Hilfe → Nach Updates suchen lädt neue Desktop-Versionen. Projekte und Einstellungen bleiben erhalten.\n\nTeilen: Gib eine Projektkopie als ZIP weiter oder merke Personen und ihre vorgesehenen Rechte vor. Einladungen und gemeinsames Bearbeiten werden mit der späteren Server-Verbindung aktiviert.'));
@@ -474,6 +486,7 @@ function find(next = false) {
   if (positions.length) selectPosition(positions[currentSearch], query.length);
 }
 function insertText(text, start = $('editor').selectionStart, end = $('editor').selectionEnd) {
+  $('editor').setSelectionRange(start,end);
   $('editor').focus(); document.execCommand('insertText', false, text);
   // execCommand preserves the browser's native undo stack for ordinary insertions.
   if ($('editor').selectionStart === start && $('editor').selectionEnd === end && text) { $('editor').setRangeText(text, start, end, 'end'); edited(); }
@@ -567,7 +580,9 @@ for (const [id, type, vertical] of [['sidebar-splitter','sidebar',true],['splitt
 new MutationObserver(() => { $('log-splitter').hidden = $('log-panel').hidden; }).observe($('log-panel'), { attributes:true, attributeFilter:['hidden'] });
 
 for (const [id, command] of [['tool-undo', 'undo'], ['tool-redo', 'redo']]) on(id, () => { if (!$('editor').disabled) { $('editor').focus(); document.execCommand(command); } });
-for (const [id, before, fallback, after] of [['tool-bold', '\\textbf{', 'Text', '}'], ['tool-italic', '\\textit{', 'Text', '}'], ['tool-section', '\\section{', 'Abschnitt', '}'], ['tool-math', '\\[\n  ', 'a^2 + b^2 = c^2', '\n\\]'], ['tool-cite', '\\cite{', 'quelle', '}']]) on(id, () => {
+const openFormula = installFormulaDialog({el,icon,showModal,modalButton,toast,insert:insertText,getContext:()=>({project:state.project?.id,file:state.file,editable:!$('editor').disabled&&!!state.file?.endsWith('.tex')})});
+on('tool-math',openFormula);
+for (const [id, before, fallback, after] of [['tool-bold', '\\textbf{', 'Text', '}'], ['tool-italic', '\\textit{', 'Text', '}'], ['tool-section', '\\section{', 'Abschnitt', '}'], ['tool-cite', '\\cite{', 'quelle', '}']]) on(id, () => {
   const editor = $('editor'); if (editor.disabled) return; const start = editor.selectionStart, selected = editor.value.slice(start, editor.selectionEnd) || fallback;
   insertText(before + selected + after); editor.setSelectionRange(start + before.length, start + before.length + selected.length); updateCursor();
 });
